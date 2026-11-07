@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>功能介绍 · C语言AI小助手</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft Yahei", sans-serif; }
+
+    body {
+        min-height: 100vh;
+        background-color: #070b14;
+        background-image:
+            radial-gradient(ellipse 50% 40% at 10% 8%, rgba(124, 58, 237, 0.25), transparent 60%),
+            radial-gradient(ellipse 45% 40% at 92% 20%, rgba(34, 211, 238, 0.12), transparent 60%),
+            radial-gradient(ellipse 40% 45% at 75% 95%, rgba(168, 85, 247, 0.18), transparent 60%),
+            linear-gradient(160deg, #0b1020 0%, #070b14 50%, #0e0a1c 100%);
+        background-attachment: fixed;
+        color: #e5e7eb;
+        overflow-x: hidden;
+    }
+
+    /* ===== 背景科技感装饰 ===== */
+    .bg-grid {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 75%);
+    }
+    .orb { position: fixed; border-radius: 50%; filter: blur(90px); z-index: 0; pointer-events: none; }
+    .orb1 { width: 420px; height: 420px; top: -120px; left: -100px; background: rgba(139, 92, 246, 0.28); }
+    .orb2 { width: 360px; height: 360px; bottom: -140px; right: -80px; background: rgba(34, 211, 238, 0.14); }
+    .orb3 { width: 300px; height: 300px; top: 45%; left: 55%; background: rgba(168, 85, 247, 0.14); }
+
+    .page { position: relative; z-index: 1; max-width: 1240px; margin: 0 auto; padding: 24px 32px 60px; }
+
+    /* ===== 顶部导航 ===== */
+    .nav {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 22px; margin-bottom: 26px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    }
+    .nav a { text-decoration: none; font-size: 14px; transition: all .25s; }
+    .back {
+        color: rgba(203, 213, 225, 0.8); padding: 8px 16px; border-radius: 999px;
+        border: 1px solid transparent;
+    }
+    .back:hover { color: #fff; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
+    .nav-title {
+        font-size: 15px; font-weight: 600; letter-spacing: 3px; color: #fff;
+        background: linear-gradient(90deg, #22d3ee, #a855f7);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .cta-link {
+        color: #06121f; font-weight: 600; padding: 9px 20px; border-radius: 999px;
+        background: linear-gradient(135deg, #22d3ee, #8b5cf6);
+        box-shadow: 0 0 18px rgba(34, 211, 238, 0.35), 0 0 30px rgba(139, 92, 246, 0.25);
+    }
+    .cta-link:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+    /* ===== 顶部大横幅（长方形） ===== */
+    .hero {
+        display: flex; align-items: center; gap: 44px;
+        padding: 46px 52px; margin-bottom: 28px;
+        border-radius: 28px;
+        background: rgba(13, 18, 34, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        box-shadow: 0 0 0 1px rgba(139,92,246,0.12), 0 0 60px rgba(124,58,237,0.18), 0 24px 60px rgba(0,0,0,0.45);
+        position: relative; overflow: hidden;
+    }
+    .hero::before {
+        content: ""; position: absolute; top: -60%; left: -20%; width: 60%; height: 220%;
+        background: linear-gradient(115deg, rgba(34,211,238,0.10), transparent 55%);
+        transform: rotate(12deg); pointer-events: none;
+    }
+    .hero-text { flex: 1.1; position: relative; }
+    .badge {
+        display: inline-block; font-size: 11px; letter-spacing: 3px; font-weight: 600;
+        color: #7dd3fc; padding: 6px 14px; border-radius: 999px; margin-bottom: 18px;
+        background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3);
+    }
+    .hero h1 {
+        font-size: 44px; font-weight: 700; line-height: 1.15; margin-bottom: 10px; letter-spacing: 1px;
+        background: linear-gradient(120deg, #ffffff 30%, #a855f7 70%, #22d3ee 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero .sub {
+        font-size: 20px; color: rgba(203, 213, 225, 0.9); margin-bottom: 16px; letter-spacing: 2px;
+    }
+    .hero .desc {
+        font-size: 14.5px; color: rgba(148, 163, 184, 0.85); line-height: 1.8; margin-bottom: 26px;
+        max-width: 520px;
+    }
+    .hero-actions { display: flex; gap: 14px; }
+    .btn-primary, .btn-ghost {
+        display: inline-block; text-decoration: none; font-size: 15px; padding: 12px 30px; border-radius: 999px; transition: all .25s;
+    }
+    .btn-primary {
+        color: #06121f; font-weight: 600;
+        background: linear-gradient(135deg, #22d3ee, #8b5cf6);
+        box-shadow: 0 0 22px rgba(34, 211, 238, 0.4), 0 0 40px rgba(139, 92, 246, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(34, 211, 238, 0.55), 0 0 55px rgba(139, 92, 246, 0.4); }
+    .btn-ghost { color: #cbd5e1; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.05); }
+    .btn-ghost:hover { color: #fff; background: rgba(255,255,255,0.12); transform: translateY(-2px); }
+
+    /* ===== 图片位置（保留地址，带阴影 + 悬停浮动动效） ===== */
+    .hero-visual { flex: 0.9; position: relative; min-height: 300px; display: flex; align-items: center; justify-content: center; }
+    .hero-visual img {
+        width: 100%; max-width: 460px; border-radius: 18px; display: block;
+        box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(139, 92, 246, 0.25), 0 0 80px rgba(34, 211, 238, 0.12);
+        transition: transform .45s cubic-bezier(.22,1,.36,1), box-shadow .45s ease;
+        animation: float 5s ease-in-out infinite;
+    }
+    .hero-visual img:hover {
+        transform: translateY(-12px) scale(1.03) rotate(-1deg);
+        box-shadow: 0 40px 70px rgba(0, 0, 0, 0.65), 0 0 60px rgba(139, 92, 246, 0.4), 0 0 110px rgba(34, 211, 238, 0.22);
+        animation-play-state: paused;
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-9px); }
+    }
+    #imgPlaceholder {
+        display: none; width: 100%; max-width: 460px; height: 300px;
+        flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+        border: 2px dashed rgba(139, 92, 246, 0.4); border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03); color: rgba(203, 213, 225, 0.6);
+        font-size: 30px; text-align: center;
+    }
+    #imgPlaceholder span { font-size: 12px; line-height: 1.7; color: rgba(148, 163, 184, 0.7); }
+
+    /* ===== 便当盒网格：6 个功能卡片 ===== */
+    .section-head { display: flex; align-items: baseline; gap: 14px; margin: 40px 4px 20px; }
+    .section-head h2 { font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 1px; }
+    .section-head p { font-size: 13px; color: rgba(148, 163, 184, 0.7); }
+
+    .bento {
+        display: grid; gap: 18px;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-areas:
+            "a a b b"
+            "a a c d"
+            "e e f f";
+    }
+
+    .card {
+        position: relative; overflow: hidden;
+        border-radius: 22px; padding: 26px 28px;
+        background: rgba(255, 255, 255, 0.045);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        transition: transform .35s cubic-bezier(.22,1,.36,1), box-shadow .35s ease, border-color .35s ease;
+        display: flex; flex-direction: column;
+    }
+    .card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(255, 255, 255, 0.18);
+        box-shadow: 0 24px 55px rgba(0, 0, 0, 0.45), var(--glow);
+    }
+
+    .card-a { grid-area: a; --glow: 0 0 40px rgba(34, 211, 238, 0.22); }
+    .card-b { grid-area: b; --glow: 0 0 40px rgba(139, 92, 246, 0.22); }
+    .card-c { grid-area: c; --glow: 0 0 40px rgba(244, 114, 182, 0.22); }
+    .card-d { grid-area: d; --glow: 0 0 40px rgba(96, 165, 250, 0.22); }
+    .card-e { grid-area: e; --glow: 0 0 40px rgba(167, 139, 250, 0.22); }
+    .card-f { grid-area: f; --glow: 0 0 40px rgba(52, 211, 153, 0.22); }
+
+    .card .num {
+        position: absolute; top: 14px; right: 20px;
+        font-size: 42px; font-weight: 800; line-height: 1;
+        color: rgba(255, 255, 255, 0.05); letter-spacing: 2px; user-select: none;
+    }
+    .card .icon-tile {
+        width: 52px; height: 52px; border-radius: 15px; display: flex; align-items: center; justify-content: center;
+        font-size: 26px; margin-bottom: 16px;
+        background: var(--tile-bg); border: 1px solid var(--tile-border);
+        box-shadow: 0 0 18px var(--tile-glow);
+    }
+    .card-a .icon-tile { --tile-bg: rgba(34,211,238,0.14); --tile-border: rgba(34,211,238,0.35); --tile-glow: rgba(34,211,238,0.25); }
+    .card-b .icon-tile { --tile-bg: rgba(139,92,246,0.16); --tile-border: rgba(139,92,246,0.4);  --tile-glow: rgba(139,92,246,0.3); }
+    .card-c .icon-tile { --tile-bg: rgba(244,114,182,0.14); --tile-border: rgba(244,114,182,0.35); --tile-glow: rgba(244,114,182,0.25); }
+    .card-d .icon-tile { --tile-bg: rgba(96,165,250,0.14); --tile-border: rgba(96,165,250,0.35); --tile-glow: rgba(96,165,250,0.25); }
+    .card-e .icon-tile { --tile-bg: rgba(167,139,250,0.14); --tile-border: rgba(167,139,250,0.35); --tile-glow: rgba(167,139,250,0.25); }
+    .card-f .icon-tile { --tile-bg: rgba(52,211,153,0.14); --tile-border: rgba(52,211,153,0.35); --tile-glow: rgba(52,211,153,0.25); }
+
+    .card h3 { font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 6px; letter-spacing: .5px; }
+    .card h3 em { font-style: normal; font-size: 12.5px; font-weight: 500; margin-left: 8px; padding: 3px 10px; border-radius: 999px; vertical-align: 3px; }
+    .card-a h3 em { color: #7dd3fc; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); }
+    .card-b h3 em { color: #c4b5fd; background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.35); }
+    .card-c h3 em { color: #f9a8d4; background: rgba(244,114,182,0.1); border: 1px solid rgba(244,114,182,0.3); }
+    .card-d h3 em { color: #93c5fd; background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.3); }
+    .card-e h3 em { color: #c4b5fd; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); }
+    .card-f h3 em { color: #6ee7b7; background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); }
+
+    .card p { font-size: 13.8px; line-height: 1.85; color: rgba(203, 213, 225, 0.78); }
+
+    /* 卡片内部装饰 */
+    .deco { margin-top: auto; padding-top: 18px; }
+    .mock-bubble {
+        font-size: 12.5px; padding: 9px 14px; border-radius: 12px; margin-top: 8px; width: fit-content; max-width: 92%;
+        color: rgba(226, 232, 240, 0.85);
+        background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    }
+    .mock-bubble.user {
+        margin-left: auto;
+        background: linear-gradient(135deg, rgba(34,211,238,0.16), rgba(139,92,246,0.24));
+        border-color: rgba(139,92,246,0.4);
+    }
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+        font-size: 11.5px; padding: 4px 12px; border-radius: 999px;
+        color: rgba(203, 213, 225, 0.8);
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    /* 知识图谱装饰 */
+    .graph-deco { height: 130px; margin-top: 6px; position: relative; }
+    .graph-deco svg { width: 100%; height: 100%; }
+    .gnode { fill: #0d1117; stroke-width: 2; }
+    .glink { stroke: rgba(167,139,250,0.5); stroke-width: 1.5; }
+
+    /* 题库装饰列表 */
+    .kb-list { display: flex; flex-direction: column; gap: 8px; }
+    .kb-item {
+        display: flex; align-items: center; gap: 10px; font-size: 12.5px;
+        color: rgba(203, 213, 225, 0.8);
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px; padding: 8px 12px;
+    }
+    .kb-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .kb-item:nth-child(1) .dot { background: #22d3ee; box-shadow: 0 0 8px #22d3ee; }
+    .kb-item:nth-child(2) .dot { background: #a855f7; box-shadow: 0 0 8px #a855f7; }
+    .kb-item:nth-child(3) .dot { background: #f472b6; box-shadow: 0 0 8px #f472b6; }
+    .kb-item .del { margin-left: auto; color: rgba(148,163,184,0.5); font-size: 11px; }
+
+    /* ===== 底部 ===== */
+    .footer {
+        margin-top: 44px; padding: 26px; text-align: center;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+        color: rgba(148, 163, 184, 0.65); font-size: 13px; letter-spacing: 1px;
+    }
+    .footer b { color: #fff; }
+
+    /* ===== 响应式 ===== */
+    @media (max-width: 960px) {
+        .hero { flex-direction: column; text-align: center; padding: 34px 26px; }
+        .hero .desc { margin: 0 auto 24px; }
+        .hero-actions { justify-content: center; }
+        .bento { grid-template-columns: 1fr; grid-template-areas: "a" "b" "c" "d" "e" "f"; }
+    }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="page">
+
+    <!-- 顶部导航 -->
+    <header class="nav">
+        <a class="back" href="index.html">⬅ 返回助手</a>
+        <span class="nav-title">功 能 介 绍</span>
+        <a class="cta-link" href="index.html">开始使用 →</a>
+    </header>
+
+    <!-- 顶部大横幅 -->
+    <section class="hero">
+        <div class="hero-text">
+            <span class="badge">C LANGUAGE · AI STUDY COMPANION</span>
+            <h1>你的AI小助手</h1>
+            <p class="sub">辅助你更好的掌握知识点</p>
+            <p class="desc">围绕 C 语言学习打造的一站式 AI 学习伙伴：智能问答、离线知识库、自动出题、笔记导出、知识图谱、错题管理，六大核心功能覆盖「学 · 练 · 记 · 析」完整学习闭环。</p>
+            <div class="hero-actions">
+                <a class="btn-primary" href="index.html">立即开始提问</a>
+                <a class="btn-ghost" href="bank.html">查看我的题库</a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <!-- 图片位置：把图片命名为 hero.png 放到 img 文件夹即可自动展示 -->
+            <img id="heroImg" src="img/image.png" alt="AI 助手界面展示图"
+                 onerror="this.style.display='none';document.getElementById('imgPlaceholder').style.display='flex';">
+            <div id="imgPlaceholder">
+                🖼️
+                <span>图片占位区<br>将图片放到 <b>img/hero.png</b> 即可自动展示<br>（或修改上方 img 标签的 src 地址）</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 六大功能便当盒 -->
+    <div class="section-head">
+        <h2>六大核心功能</h2>
+        <p>SIX CORE FEATURES · 点亮你的 C 语言学习之路</p>
+    </div>
+
+    <section class="bento">
+
+        <!-- 01 AI 调用访问 -->
+        <div class="card card-a">
+            <span class="num">01</span>
+            <div class="icon-tile">🤖</div>
+            <h3>AI 调用访问 <em>联网模式</em></h3>
+            <p>对接魔搭平台 DeepSeek 大模型，在输入框提交 C 语言相关问题，联网获取模型解答，适合查询知识点、排查代码 BUG、理解语法逻辑。</p>
+            <div class="deco">
+                <div class="mock-bubble user">这段代码为什么段错误？🤔</div>
+                <div class="mock-bubble">数组越界啦！第 12 行的循环条件 i &lt;= 10 应改为 i &lt; 10 …</div>
+            </div>
+        </div>
+
+        <!-- 02 本地知识库访问 -->
+        <div class="card card-b">
+            <span class="num">02</span>
+            <div class="icon-tile">📦</div>
+            <h3>本地知识库访问 <em>离线模式</em></h3>
+            <p>对接 Ollama 部署的 Qwen 本地大模型，无需网络。支持导入 PDF 等 C 语言学习资料构建私有知识库，可基于文档内容离线问答，也支持题目收藏，适合无网环境自学、完成课后作业。</p>
+            <div class="deco chip-row">
+                <span class="chip">📄 PDF 导入</span>
+                <span class="chip">🔒 纯离线</span>
+                <span class="chip">🧩 Qwen 私有库</span>
+            </div>
+        </div>
+
+        <!-- 03 生成专属题目 -->
+        <div class="card card-c">
+            <span class="num">03</span>
+            <div class="icon-tile">✍️</div>
+            <h3>生成专属题目</h3>
+            <p>输入 C 语言目标知识点（如循环、指针、数组等），系统自动生成配套练习题，习题支持本地下载，用于学完知识点后的自测巩固。</p>
+        </div>
+
+        <!-- 04 生成学习文档 -->
+        <div class="card card-d">
+            <span class="num">04</span>
+            <div class="icon-tile">📥</div>
+            <h3>生成学习文档</h3>
+            <p>在多轮知识点问答结束后，一键触发文档生成功能，自动对对话内容排版整理，导出规范学习笔记到本地，省去手动整理笔记的工作。</p>
+        </div>
+
+        <!-- 05 生成知识图谱 -->
+        <div class="card card-e">
+            <span class="num">05</span>
+            <div class="icon-tile">🕸️</div>
+            <h3>生成知识图谱 <em>可视化</em></h3>
+            <p>针对同主题下的多轮对话内容，自动提取知识点并生成可视化知识图谱，梳理知识点间逻辑关联，方便学习者搭建整体知识框架，图谱可截图留存；建议单轮对话聚焦同一主题，保证图谱结构清晰。</p>
+            <div class="deco graph-deco">
+                <svg viewBox="0 0 500 120" preserveAspectRatio="xMidYMid meet">
+                    <line class="glink" x1="120" y1="60" x2="60" y2="25"></line>
+                    <line class="glink" x1="120" y1="60" x2="60" y2="95"></line>
+                    <line class="glink" x1="120" y1="60" x2="210" y2="30"></line>
+                    <line class="glink" x1="210" y1="30" x2="280" y2="70"></line>
+                    <line class="glink" x1="210" y1="30" x2="300" y2="20"></line>
+                    <line class="glink" x1="280" y1="70" x2="370" y2="45"></line>
+                    <line class="glink" x1="280" y1="70" x2="340" y2="100"></line>
+                    <line class="glink" x1="370" y1="45" x2="440" y2="80"></line>
+                    <circle class="gnode" cx="120" cy="60" r="14" stroke="#22d3ee"></circle>
+                    <circle class="gnode" cx="60" cy="25" r="8" stroke="#a855f7"></circle>
+                    <circle class="gnode" cx="60" cy="95" r="8" stroke="#a855f7"></circle>
+                    <circle class="gnode" cx="210" cy="30" r="10" stroke="#22d3ee"></circle>
+                    <circle class="gnode" cx="300" cy="20" r="6" stroke="#f472b6"></circle>
+                    <circle class="gnode" cx="280" cy="70" r="10" stroke="#a855f7"></circle>
+                    <circle class="gnode" cx="370" cy="45" r="8" stroke="#f472b6"></circle>
+                    <circle class="gnode" cx="340" cy="100" r="6" stroke="#f472b6"></circle>
+                    <circle class="gnode" cx="440" cy="80" r="6" stroke="#22d3ee"></circle>
+                </svg>
+            </div>
+        </div>
+
+        <!-- 06 我的题库 -->
+        <div class="card card-f">
+            <span class="num">06</span>
+            <div class="icon-tile">📚</div>
+            <h3>我的题库 <em>错题收藏</em></h3>
+            <p>AI 生成习题、问答中遇到的重点题目均可勾选收藏入库；进入题库页面可统一查看，掌握后也可删除对应题目，实现错题管理、反复复盘。</p>
+            <div class="deco kb-list">
+                <div class="kb-item"><span class="dot"></span> 指针与数组内存布局 · 单选 <span class="del">已掌握 ✕</span></div>
+                <div class="kb-item"><span class="dot"></span> for 循环边界改错 · 改错 <span class="del">已掌握 ✕</span></div>
+                <div class="kb-item"><span class="dot"></span> 结构体指针编程 · 编程 <span class="del">已掌握 ✕</span></div>
+            </div>
+        </div>
+
+    </section>
+
+    <footer class="footer">
+        <b>C语言 AI 小助手</b> · 学 · 练 · 记 · 析 —— 让每一个知识点都被真正掌握
+    </footer>
+
+</div>
+
+</body>
+</html>
