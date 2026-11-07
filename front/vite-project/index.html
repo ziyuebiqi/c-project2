@@ -421,6 +421,36 @@
         }
         .pdf-upload.show { display: flex; }
 
+        /* ================= 课件知识库工具条 ================= */
+        .kb-toolbar {
+            display: flex; align-items: center; gap: 14px;
+            max-width: 850px; width: 100%; margin: 0 auto 10px;
+            font-size: 12.5px; color: rgba(203, 213, 225, 0.8);
+        }
+        .kb-switch { display: flex; align-items: center; gap: 9px; cursor: pointer; user-select: none; }
+        .kb-switch input { display: none; }
+        .kb-slider {
+            position: relative; width: 36px; height: 20px; border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14); border: 1px solid rgba(255, 255, 255, 0.16); transition: .25s;
+        }
+        .kb-slider::before {
+            content: ""; position: absolute; width: 12px; height: 12px; left: 3px; top: 3px;
+            border-radius: 50%; background: #cbd5e1; transition: .25s;
+        }
+        .kb-switch input:checked + .kb-slider {
+            background: linear-gradient(135deg, #22d3ee, #8b5cf6); border-color: transparent;
+            box-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+        }
+        .kb-switch input:checked + .kb-slider::before { transform: translateX(16px); background: #fff; }
+        .kb-manage {
+            color: #7dd3fc; text-decoration: none; font-size: 12px;
+            padding: 5px 14px; border-radius: 999px;
+            border: 1px solid rgba(34, 211, 238, 0.3); background: rgba(34, 211, 238, 0.08); transition: all .2s;
+        }
+        .kb-manage:hover { color: #fff; background: rgba(34, 211, 238, 0.16); }
+        .kb-hint { margin-left: auto; font-size: 11.5px; color: rgba(148, 163, 184, 0.55); }
+        .kb-toolbar.warn .kb-hint { color: #fbbf24; }
+
         #graphContainer {
             display: none; flex: 1; padding: 20px; position: relative; height: 100%; width: 100%;
             background: rgba(10, 16, 32, 0.85); backdrop-filter: blur(16px);
@@ -530,6 +560,9 @@
             <div class="nav-btn" id="localKbBtn">
                 <span class="icon">📦</span> 本地知识库访问
             </div>
+            <div class="nav-btn" id="courseKbBtn">
+                <span class="icon">🗂️</span> 课件知识库
+            </div>
             <div class="nav-btn" id="genQuizBtn">
                 <span class="icon">✍️</span> 生成专属题目
             </div>
@@ -574,6 +607,15 @@
             <button id="exportQuizBtn">📥 保存本次试卷 (Markdown)</button>
 
             <div class="chat-bottom" style="flex-direction: column;">
+                <div class="kb-toolbar" id="kbToolbar">
+                    <label class="kb-switch" title="开启后，回答会优先依据你上传的课件">
+                        <input type="checkbox" id="kbEnabledToggle">
+                        <span class="kb-slider"></span>
+                        <span>基于课件问答</span>
+                    </label>
+                    <a class="kb-manage" href="kb.html">🗂️ 管理课件 →</a>
+                    <span class="kb-hint" id="kbHint">仅本地离线模式生效</span>
+                </div>
                 <div class="pdf-upload" id="pdfUploadArea">
                     <span>📄 上传 PDF：</span>
                     <input type="file" id="pdfFile" accept="application/pdf">
@@ -646,6 +688,39 @@
 
     let useAiApi = false;
     let useLocalKb = false;
+
+    // ================= 课件知识库开关 =================
+    // 只在本地 Ollama 模式生效：课件内容不出本机，不会发到云端 API
+    let kbQaEnabled = localStorage.getItem('kbQaEnabled') === '1';
+    const kbEnabledToggle = document.getElementById('kbEnabledToggle');
+    const kbToolbar = document.getElementById('kbToolbar');
+    const kbHint = document.getElementById('kbHint');
+    kbEnabledToggle.checked = kbQaEnabled;
+
+    function updateKbHint() {
+        if (!kbQaEnabled) {
+            kbToolbar.classList.remove('warn');
+            kbHint.textContent = '仅本地离线模式生效';
+        } else if (!useLocalKb) {
+            kbToolbar.classList.add('warn');
+            kbHint.textContent = '需先开启「本地知识库访问」才会生效';
+        } else {
+            kbToolbar.classList.remove('warn');
+            kbHint.textContent = '✓ 已启用 · 回答将优先依据你的课件';
+        }
+    }
+
+    kbEnabledToggle.onchange = function() {
+        kbQaEnabled = this.checked;
+        localStorage.setItem('kbQaEnabled', kbQaEnabled ? '1' : '0');
+        updateKbHint();
+    };
+
+    // 侧边栏「课件知识库」跳转到管理页
+    document.getElementById('courseKbBtn').onclick = function() {
+        window.location.href = 'kb.html';
+    };
+    updateKbHint();
 
     const pdfUploadArea = document.getElementById('pdfUploadArea');
     const pdfFileInput = document.getElementById('pdfFile');
@@ -849,6 +924,7 @@
 
         const bubble = createStreamBubble();
         const payloadExtra = (useLocalKb && pdfText) ? { pdfText } : {};
+        if (useLocalKb && kbQaEnabled) payloadExtra.kbEnabled = true;
         let lastRender = 0;
 
         try {
@@ -901,6 +977,7 @@
         this.classList.toggle('active', useAiApi);
         if (useAiApi && useLocalKb) { useLocalKb = false; document.getElementById('localKbBtn').classList.remove('active'); }
         pdfUploadArea.classList.toggle('show', useLocalKb);
+        updateKbHint();
         addMsg(useAiApi ? "✅ 已开启魔塔模型对话" : "❌ 已关闭API模式", false, true);
     }
 
@@ -909,6 +986,7 @@
         this.classList.toggle('active', useLocalKb);
         if (useLocalKb && useAiApi) { useAiApi = false; document.getElementById('aiApiBtn').classList.remove('active'); }
         pdfUploadArea.classList.toggle('show', useLocalKb);
+        updateKbHint();
         if(useLocalKb){
             addMsg("✅ 已开启本地 Ollama 模型对话", false, true);
         }else{
@@ -972,6 +1050,7 @@
 
         try {
             const payloadExtra = (useLocalKb && pdfText) ? { pdfText } : {};
+            if (useLocalKb && kbQaEnabled) payloadExtra.kbEnabled = true;
             const data = await requestAI(prompt, useLocalKb, payloadExtra);
 
             removeLoading();
