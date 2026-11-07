@@ -67,6 +67,8 @@
             padding: 20px 16px;
             gap: 12px;
             border-right: 1px solid rgba(255, 255, 255, 0.06);
+            overflow-y: auto;
+            min-height: 0;
         }
 
         .sidebar-logo {
@@ -544,6 +546,48 @@
         }
         .hv-btn:hover { background: rgba(34, 211, 238, 0.18); color: #fff; box-shadow: 0 0 10px rgba(34, 211, 238, 0.25); }
         .hv-expand-hint { font-size: 11px; color: rgba(148, 163, 184, 0.5); }
+
+        /* ================= 会话管理 ================= */
+        .session-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.07); }
+        .session-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 8px; }
+        .session-head > span { font-size: 11px; letter-spacing: 1px; color: rgba(148, 163, 184, 0.6); }
+        .session-new {
+            font-size: 11px; padding: 4px 10px; border-radius: 999px; cursor: pointer;
+            border: 1px solid rgba(34, 211, 238, 0.4); background: rgba(34, 211, 238, 0.08);
+            color: #7dd3fc; transition: all 0.2s;
+        }
+        .session-new:hover { background: rgba(34, 211, 238, 0.2); color: #fff; }
+        .session-list { max-height: 168px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 2px; }
+        .session-list::-webkit-scrollbar { width: 4px; }
+        .session-list::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.4); border-radius: 4px; }
+        .session-item {
+            display: flex; align-items: center; gap: 6px; padding: 7px 8px; border-radius: 9px;
+            font-size: 12px; color: rgba(203, 213, 225, 0.8); cursor: pointer;
+            border: 1px solid transparent; transition: all 0.2s;
+        }
+        .session-item:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+        .session-item.active { background: rgba(139, 92, 246, 0.16); border-color: rgba(139, 92, 246, 0.4); color: #e9d5ff; }
+        .session-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .session-del { flex: none; opacity: 0; color: #fca5a5; font-size: 13px; padding: 0 3px; }
+        .session-item:hover .session-del { opacity: 1; }
+        .session-del:hover { color: #fff; }
+
+        /* ================= 待复习提醒 / 看板入口 ================= */
+        .review-tip {
+            display: none; align-items: center; gap: 10px; margin: 0 22px 8px;
+            padding: 9px 14px; border-radius: 12px; font-size: 12.5px; flex-shrink: 0;
+            background: rgba(251, 146, 60, 0.08); border: 1px solid rgba(251, 146, 60, 0.3);
+            color: #fdba74; backdrop-filter: blur(10px);
+        }
+        .review-tip.show { display: flex; }
+        .review-tip a { margin-left: auto; color: #7dd3fc; text-decoration: none; }
+        .review-tip a:hover { text-decoration: underline; }
+        .nav-badge {
+            margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+            display: none; align-items: center; justify-content: center; font-size: 10.5px;
+            background: linear-gradient(135deg, #f97316, #f43f5e); color: #fff;
+        }
+        .nav-badge.show { display: inline-flex; }
     </style>
 </head>
 <body>
@@ -579,6 +623,18 @@
                 <span class="icon">📚</span> 我的题库
                 <span class="kb-badge" id="kbBadge">0</span>
             </div>
+            <div class="nav-btn" id="dashboardBtn">
+                <span class="icon">📊</span> 学习看板
+                <span class="nav-badge" id="reviewBadge">0</span>
+            </div>
+
+            <div class="session-section">
+                <div class="session-head">
+                    <span>我的会话</span>
+                    <button class="session-new" id="newSessionBtn">＋ 新对话</button>
+                </div>
+                <div class="session-list" id="sessionList"></div>
+            </div>
         </div>
 
         <!-- 右侧主内容区 -->
@@ -590,6 +646,12 @@
                     <a href="javascript:void(0)" id="wrongBookNavBtn">错题本</a>
                 </div>
                 <h2>有什么C语言问题，尽管问我</h2>
+            </div>
+
+            <div class="review-tip" id="reviewTip">
+                <span>🔔</span>
+                <span id="reviewTipText">今日有待复习题目</span>
+                <a href="dashboard.html">查看复习计划 →</a>
             </div>
 
             <div class="chat-content" id="chatBox">
@@ -765,9 +827,144 @@
     pruneHistory();
     localStorage.setItem(HISTORY_KEY, JSON.stringify(chatHistory));
 
+    // ================= 多会话管理（F2） =================
+    // 会话只保存原始文本，界面由 addMsg 重建；全部数据仍在 localStorage，不引入后端依赖。
+    const SESSION_KEY = 'chatSessions_v1';
+    const WELCOME_TEXT = '你好，我是C语言AI小助手！点击左侧【AI调用访问】或【本地知识库访问】开启对话，也可以点击【生成专属题目】来测试一下自己。';
+
+    function loadSessions() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+            if (raw && Array.isArray(raw.sessions) && raw.sessions.length) {
+                const ok = raw.sessions.every(s => s && s.id && Array.isArray(s.messages));
+                if (ok) return { activeId: raw.activeId || raw.sessions[0].id, sessions: raw.sessions };
+            }
+        } catch (e) { /* 数据损坏时重建 */ }
+        const first = makeSession();
+        const store = { activeId: first.id, sessions: [first] };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(store));
+        return store;
+    }
+    function makeSession() {
+        return { id: 's_' + Date.now() + '_' + Math.floor(Math.random() * 1000), title: '新对话',
+                 createdAt: Date.now(), updatedAt: Date.now(), messages: [] };
+    }
+    let sessionStore = loadSessions();
+    function saveSessions() { localStorage.setItem(SESSION_KEY, JSON.stringify(sessionStore)); }
+    function activeSession() {
+        return sessionStore.sessions.find(s => s.id === sessionStore.activeId) || sessionStore.sessions[0];
+    }
+    function appendSessionMessage(role, content) {
+        const s = activeSession();
+        if (!s) return;
+        s.messages.push({ role: role, content: String(content).slice(0, 4000), ts: Date.now() });
+        if (s.messages.length > 60) s.messages = s.messages.slice(-60);
+        if (s.title === '新对话' && role === 'user') {
+            s.title = String(content).replace(/\s+/g, ' ').slice(0, 14) || '新对话';
+        }
+        s.updatedAt = Date.now();
+        saveSessions();
+        renderSessionList();
+    }
+    // 取最近 6 轮（12 条）作为模型上下文。
+    // send() 会先把当前问题写入会话再调用本函数，因此末尾那条 user 必须剔除：
+    // 它已经作为 message 单独发给后端了，重复带上会让模型看到两遍同一个问题；
+    // 同理，上一轮请求失败时残留的孤立 user 也一并剔除，避免出现连续 user。
+    function getContextHistory() {
+        const msgs = (activeSession() ? activeSession().messages : []).slice(-12)
+            .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
+        while (msgs.length && msgs[msgs.length - 1].role === 'user') msgs.pop();
+        return msgs;
+    }
+    function renderActiveSession() {
+        const s = activeSession();
+        chatBox.innerHTML = '';
+        if (!s || !s.messages.length) {
+            chatBox.innerHTML = `<div class="msg-item msg-left"><div class="avatar">✦</div><div class="bubble" data-raw="${WELCOME_TEXT}">${WELCOME_TEXT}</div></div>`;
+            return;
+        }
+        s.messages.forEach(m => addMsg(m.content, m.role === 'user', false, null, true));
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    function renderSessionList() {
+        const list = document.getElementById('sessionList');
+        list.innerHTML = '';
+        [...sessionStore.sessions].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)).forEach(s => {
+            const item = document.createElement('div');
+            item.className = 'session-item' + (s.id === sessionStore.activeId ? ' active' : '');
+            item.innerHTML = '<span class="session-name"></span><span class="session-del" title="删除会话">×</span>';
+            item.querySelector('.session-name').textContent = s.title || '新对话';
+            item.onclick = () => switchSession(s.id);
+            item.querySelector('.session-del').onclick = (e) => { e.stopPropagation(); deleteSession(s.id); };
+            list.appendChild(item);
+        });
+    }
+    function switchSession(id) {
+        sessionStore.activeId = id;
+        saveSessions();
+        renderSessionList();
+        renderActiveSession();
+    }
+    function newSession() {
+        const s = makeSession();
+        sessionStore.sessions.push(s);
+        sessionStore.activeId = s.id;
+        saveSessions();
+        renderSessionList();
+        renderActiveSession();
+        inputText.focus();
+    }
+    function deleteSession(id) {
+        if (sessionStore.sessions.length <= 1) return alert('至少保留一个会话');
+        if (!confirm('删除这个会话及其聊天记录？此操作不可恢复。')) return;
+        sessionStore.sessions = sessionStore.sessions.filter(s => s.id !== id);
+        if (sessionStore.activeId === id) sessionStore.activeId = sessionStore.sessions[0].id;
+        saveSessions();
+        renderSessionList();
+        renderActiveSession();
+    }
+    document.getElementById('newSessionBtn').onclick = newSession;
+
+    // ================= 艾宾浩斯待复习提醒（F3 入口） =================
+    // 间隔表与 dashboard.html 保持一致：答对次数越多，下次复习间隔越长
+    const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30];
+    function readQuestionBank() {
+        try { const v = JSON.parse(localStorage.getItem('myQuestionBank') || '[]'); return Array.isArray(v) ? v : []; }
+        catch (e) { return []; }
+    }
+    function getDueReviews() {
+        const now = Date.now();
+        return readQuestionBank().filter(q => {
+            if (!q || q.mastered) return false;
+            if (!q.lastReview) return true;   // 从未练过 = 新题待练
+            const step = Math.min(Number(q.level) || 0, REVIEW_INTERVALS.length - 1);
+            return now - Number(q.lastReview) >= REVIEW_INTERVALS[step] * 86400000;
+        });
+    }
+    function updateReviewBadge() {
+        const n = getDueReviews().length;
+        const badge = document.getElementById('reviewBadge');
+        const tip = document.getElementById('reviewTip');
+        if (n > 0) {
+            badge.textContent = n > 99 ? '99+' : n;
+            badge.classList.add('show');
+            tip.classList.add('show');
+            document.getElementById('reviewTipText').textContent = `今日有 ${n} 道题待复习，趁热打铁巩固一下`;
+        } else {
+            badge.classList.remove('show');
+            tip.classList.remove('show');
+        }
+    }
+    document.getElementById('dashboardBtn').onclick = function() { window.location.href = 'dashboard.html'; };
+    window.addEventListener('storage', updateReviewBadge);
+
+    renderSessionList();
+    renderActiveSession();
+    updateReviewBadge();
+
     // ================= 界面渲染 =================
     // 修改点 1：新增 rawText 参数，把原始文本存到 data-raw，方便后续导出干净 Markdown
-    function addMsg(content, isUser = false, skipActionBar = false, rawText = null) {
+    function addMsg(content, isUser = false, skipActionBar = false, rawText = null, noSave = false) {
         const div = document.createElement('div');
         div.className = `msg-item ${isUser ? 'msg-right' : 'msg-left'}`;
 
@@ -809,6 +1006,8 @@
 
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
+        // 系统提示（skipActionBar）与会话恢复（noSave）不写入会话存储
+        if (!noSave && !skipActionBar) appendSessionMessage(isUser ? 'user' : 'assistant', content);
     }
 
     // 加入题库逻辑
@@ -827,7 +1026,8 @@
             id: quizId,
             topic: topic,
             content: questionText,
-            time: new Date().toLocaleString()
+            time: new Date().toLocaleString(),
+            wrongCount: 0, rightCount: 0, level: 0, mastered: false, lastReview: 0
         };
 
         questionBank.push(newQuestion);
@@ -836,6 +1036,7 @@
         btn.classList.add('added');
         btn.innerHTML = '✅ 已加入题库';
         updateKbBadge();
+        updateReviewBadge();
     };
 
     // 跳转到题库页面
@@ -913,18 +1114,19 @@
         const text = inputText.value.trim();
         if (!text) return;
 
-        addMsg(text, true);
-        inputText.value = '';
-        lastQuizTopic = text.substring(0, 10);
-
         if(!useAiApi && !useLocalKb){
             addMsg("⚠️ 请先在左侧开启任一模型！", false, true);
             return;
         }
 
+        addMsg(text, true);
+        inputText.value = '';
+        lastQuizTopic = text.substring(0, 10);
+
         const bubble = createStreamBubble();
         const payloadExtra = (useLocalKb && pdfText) ? { pdfText } : {};
         if (useLocalKb && kbQaEnabled) payloadExtra.kbEnabled = true;
+        payloadExtra.history = getContextHistory();   // F2：携带当前会话最近 6 轮上下文
         let lastRender = 0;
 
         try {
@@ -961,6 +1163,7 @@
             bubble.appendChild(bar);
 
             recordQA(text, full);
+            appendSessionMessage('assistant', full);   // F2：AI 回复写回当前会话
             chatBox.scrollTop = chatBox.scrollHeight;
         } catch (error) {
             bubble.classList.remove('streaming');
@@ -1051,6 +1254,7 @@
         try {
             const payloadExtra = (useLocalKb && pdfText) ? { pdfText } : {};
             if (useLocalKb && kbQaEnabled) payloadExtra.kbEnabled = true;
+            payloadExtra.history = getContextHistory();   // F2：出题也延续当前会话主题
             const data = await requestAI(prompt, useLocalKb, payloadExtra);
 
             removeLoading();
