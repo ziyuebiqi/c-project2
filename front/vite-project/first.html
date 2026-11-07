@@ -258,6 +258,178 @@
         .hero-actions { justify-content: center; }
         .bento { grid-template-columns: 1fr; grid-template-areas: "a" "b" "c" "d" "e" "f"; }
     }
+
+    /* ==========================================================
+       以下为本次新增：能力指标条 / 进阶能力模块 / 底部行动区
+       ========================================================== */
+
+    /* 章节标题增强 */
+    .section-head { align-items: center; }
+    .sec-index {
+        display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+        width: 34px; height: 34px; border-radius: 11px; font-size: 13px; font-weight: 700;
+        color: #7dd3fc; background: rgba(34,211,238,.10);
+        border: 1px solid rgba(34,211,238,.3); box-shadow: 0 0 18px rgba(34,211,238,.15);
+    }
+    .sec-index.violet {
+        color: #c4b5fd; background: rgba(139,92,246,.12);
+        border-color: rgba(139,92,246,.35); box-shadow: 0 0 18px rgba(139,92,246,.18);
+    }
+    .sec-line { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,.14), transparent); }
+    .section-head p { white-space: nowrap; }
+
+    /* 能力指标条 */
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 8px; }
+    .metric {
+        position: relative; overflow: hidden; padding: 17px 22px; border-radius: 18px;
+        background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.08);
+        backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+        transition: transform .3s ease, border-color .3s ease;
+    }
+    .metric:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.18); }
+    .metric::after {
+        content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--m-color), transparent); opacity: .8;
+    }
+    .metric b {
+        display: block; font-size: 30px; font-weight: 800; line-height: 1.15; letter-spacing: 1px;
+        color: var(--m-color); text-shadow: 0 0 26px var(--m-glow);
+    }
+    .metric span { font-size: 12px; color: rgba(203,213,225,.8); letter-spacing: 2px; }
+    .metric small { display: block; margin-top: 3px; font-size: 11.5px; color: rgba(148,163,184,.55); letter-spacing: .5px; }
+
+    /* 进阶能力网格：与上方便当盒不同的 3 列构图 */
+    .adv-grid {
+        display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr);
+        grid-template-areas:
+            "g g h"
+            "g g i"
+            "j j j";
+    }
+    .adv-card {
+        position: relative; overflow: hidden;
+        border-radius: 24px; padding: 28px 30px;
+        background: linear-gradient(150deg, rgba(255,255,255,.065), rgba(255,255,255,.022));
+        border: 1px solid rgba(255,255,255,.09);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 16px 46px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.06);
+        display: flex; flex-direction: column;
+        transition: transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s ease, border-color .4s ease;
+    }
+    .adv-card::before {
+        content: ""; position: absolute; inset: 0 0 auto 0; height: 2px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent); opacity: .9;
+    }
+    .adv-card::after {
+        content: ""; position: absolute; width: 280px; height: 280px; right: -120px; bottom: -170px;
+        border-radius: 50%; background: var(--halo); filter: blur(60px); pointer-events: none;
+    }
+    .adv-card:hover {
+        transform: translateY(-7px); border-color: var(--edge);
+        box-shadow: 0 28px 62px rgba(0,0,0,.5), 0 0 46px var(--halo2);
+    }
+    .adv-g { grid-area: g; --accent:#22d3ee; --halo:rgba(34,211,238,.16); --halo2:rgba(34,211,238,.22); --edge:rgba(34,211,238,.4); }
+    .adv-h { grid-area: h; --accent:#a855f7; --halo:rgba(168,85,247,.18); --halo2:rgba(168,85,247,.22); --edge:rgba(168,85,247,.4); }
+    .adv-i { grid-area: i; --accent:#60a5fa; --halo:rgba(96,165,250,.16); --halo2:rgba(96,165,250,.22); --edge:rgba(96,165,250,.4); }
+    .adv-j { grid-area: j; --accent:#34d399; --halo:rgba(52,211,153,.15); --halo2:rgba(52,211,153,.2);  --edge:rgba(52,211,153,.4); }
+
+    .adv-num {
+        position: absolute; top: 12px; right: 24px; line-height: 1;
+        font-size: 62px; font-weight: 800; color: rgba(255,255,255,.045);
+        letter-spacing: 2px; user-select: none;
+    }
+    .adv-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; position: relative; z-index: 1; }
+    .adv-icon {
+        width: 50px; height: 50px; border-radius: 15px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 24px;
+        background: var(--ibg); border: 1px solid var(--ibd); box-shadow: 0 0 20px var(--iglow);
+    }
+    .adv-g .adv-icon { --ibg:rgba(34,211,238,.12); --ibd:rgba(34,211,238,.32); --iglow:rgba(34,211,238,.22); }
+    .adv-h .adv-icon { --ibg:rgba(168,85,247,.14); --ibd:rgba(168,85,247,.36); --iglow:rgba(168,85,247,.24); }
+    .adv-i .adv-icon { --ibg:rgba(96,165,250,.13); --ibd:rgba(96,165,250,.34); --iglow:rgba(96,165,250,.22); }
+    .adv-j .adv-icon { --ibg:rgba(52,211,153,.12); --ibd:rgba(52,211,153,.32); --iglow:rgba(52,211,153,.22); }
+    .adv-title { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: .5px; }
+    .adv-tag { display: block; margin-top: 5px; font-size: 11px; letter-spacing: 2px; color: var(--accent); }
+    .adv-desc { font-size: 13.8px; line-height: 1.9; color: rgba(203,213,225,.8); max-width: 640px; position: relative; z-index: 1; }
+    .adv-deco { margin-top: auto; padding-top: 22px; position: relative; z-index: 1; }
+
+    /* 07 课件检索命中 */
+    .file-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+    .file-pill {
+        font-size: 11.5px; padding: 6px 12px; border-radius: 9px; color: rgba(203,213,225,.85);
+        background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.11);
+    }
+    .hit { display: flex; align-items: center; gap: 10px; margin-top: 9px; font-size: 11.5px; color: rgba(148,163,184,.75); }
+    .hit b { width: 76px; flex-shrink: 0; font-weight: 500; }
+    .hit-track { flex: 1; max-width: 340px; height: 6px; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
+    .hit-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22d3ee, #8b5cf6); box-shadow: 0 0 12px rgba(34,211,238,.5); }
+    .hit i { font-style: normal; width: 34px; text-align: right; color: #7dd3fc; }
+
+    /* 08 历史时间轴 */
+    .tl { position: relative; padding-left: 18px; border-left: 1px solid rgba(168,85,247,.35); }
+    .tl-item { position: relative; padding-bottom: 12px; font-size: 12px; color: rgba(203,213,225,.8); }
+    .tl-item:last-child { padding-bottom: 0; }
+    .tl-item::before { content: ""; position: absolute; left: -22px; top: 5px; width: 7px; height: 7px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 9px #a855f7; }
+    .tl-item span { color: rgba(148,163,184,.55); font-size: 11px; margin-right: 8px; }
+
+    /* 09 会话上下文链 */
+    .conv { display: flex; flex-direction: column; gap: 7px; }
+    .conv-b {
+        font-size: 11.5px; padding: 7px 11px; border-radius: 10px; width: fit-content; max-width: 96%;
+        background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: rgba(203,213,225,.8);
+    }
+    .conv-b.me { align-self: flex-end; background: linear-gradient(135deg, rgba(96,165,250,.18), rgba(139,92,246,.2)); border-color: rgba(139,92,246,.32); }
+    .conv-tag { align-self: flex-start; margin-top: 4px; font-size: 10.5px; letter-spacing: 1px; padding: 3px 9px; border-radius: 999px; color: #93c5fd; background: rgba(96,165,250,.1); border: 1px solid rgba(96,165,250,.28); }
+
+    /* 10 迷你看板 */
+    .kpi-mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; max-width: 560px; }
+    .kpi-mini div { text-align: center; padding: 9px 4px; border-radius: 11px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
+    .kpi-mini b { display: block; font-size: 17px; font-weight: 700; color: #6ee7b7; text-shadow: 0 0 16px rgba(52,211,153,.4); }
+    .kpi-mini span { font-size: 10.5px; color: rgba(148,163,184,.65); }
+    .heat-mini { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; max-width: 420px; }
+    .hm { aspect-ratio: 1; border-radius: 3px; background: rgba(255,255,255,.06); }
+    .hm.l1 { background: rgba(52,211,153,.3); }
+    .hm.l2 { background: rgba(52,211,153,.6); box-shadow: 0 0 8px rgba(52,211,153,.3); }
+    .hm.l3 { background: #34d399; box-shadow: 0 0 10px rgba(52,211,153,.5); }
+
+    /* 底部行动区 */
+    .cta-band {
+        position: relative; overflow: hidden; margin-top: 46px; padding: 40px 44px;
+        border-radius: 26px; text-align: center;
+        background: linear-gradient(120deg, rgba(34,211,238,.08), rgba(139,92,246,.10) 55%, rgba(244,114,182,.06));
+        border: 1px solid rgba(255,255,255,.12);
+        box-shadow: 0 20px 60px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08);
+    }
+    .cta-band::before { content: ""; position: absolute; width: 340px; height: 340px; left: -120px; top: -200px; border-radius: 50%; background: rgba(34,211,238,.18); filter: blur(70px); }
+    .cta-band::after  { content: ""; position: absolute; width: 300px; height: 300px; right: -110px; bottom: -200px; border-radius: 50%; background: rgba(168,85,247,.2); filter: blur(70px); }
+    .cta-band > * { position: relative; z-index: 1; }
+    .cta-band .kicker { font-size: 11px; letter-spacing: 4px; color: #7dd3fc; }
+    .cta-band h2 { font-size: 28px; margin: 12px 0 8px; color: #fff; letter-spacing: 1px; }
+    .cta-band p { font-size: 13.5px; color: rgba(203,213,225,.75); margin-bottom: 24px; }
+    .quick-links { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    .quick-links a {
+        font-size: 13px; text-decoration: none; padding: 9px 18px; border-radius: 999px;
+        color: #cbd5e1; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14);
+        transition: all .25s ease;
+    }
+    .quick-links a:hover { color: #fff; border-color: rgba(34,211,238,.5); background: rgba(34,211,238,.1); transform: translateY(-2px); }
+
+    /* 入场动画（不影响 hover 变换） */
+    .reveal.in { animation: riseIn .7s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes riseIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+    @media (prefers-reduced-motion: reduce) {
+        .reveal.in { animation: none; }
+        .hero-visual img { animation: none; }
+    }
+    @media (max-width: 960px) {
+        .metrics { grid-template-columns: repeat(2, 1fr); }
+        .adv-grid { grid-template-columns: 1fr; grid-template-areas: "g" "h" "i" "j"; }
+        .section-head { flex-wrap: wrap; }
+        .section-head p { white-space: normal; }
+        .cta-band { padding: 32px 22px; }
+        .cta-band h2 { font-size: 23px; }
+    }
 </style>
 </head>
 <body>
@@ -282,37 +454,55 @@
             <span class="badge">C LANGUAGE · AI STUDY COMPANION</span>
             <h1>你的AI小助手</h1>
             <p class="sub">辅助你更好的掌握知识点</p>
-            <p class="desc">围绕 C 语言学习打造的一站式 AI 学习伙伴：智能问答、离线知识库、自动出题、笔记导出、知识图谱、错题管理，六大核心功能覆盖「学 · 练 · 记 · 析」完整学习闭环。</p>
+            <p class="desc">围绕 C 语言学习打造的一站式 AI 学习伙伴：从双模智能问答、自有课件检索，到自动出题、AI 批改、知识星图与学情看板，十项能力贯通「学 · 练 · 记 · 析 · 复」完整闭环，让每一个知识点都有迹可循。</p>
             <div class="hero-actions">
                 <a class="btn-primary" href="index.html">立即开始提问</a>
                 <a class="btn-ghost" href="bank.html">查看我的题库</a>
             </div>
         </div>
         <div class="hero-visual">
-            <!-- 图片位置：把图片命名为 hero.png 放到 img 文件夹即可自动展示 -->
+            <!-- 图片位置：把图片命名为 image.png 放到 img 文件夹即可自动展示 -->
             <img id="heroImg" src="img/image.png" alt="AI 助手界面展示图"
                  onerror="this.style.display='none';document.getElementById('imgPlaceholder').style.display='flex';">
             <div id="imgPlaceholder">
                 🖼️
-                <span>图片占位区<br>将图片放到 <b>img/hero.png</b> 即可自动展示<br>（或修改上方 img 标签的 src 地址）</span>
+                <span>图片占位区<br>将图片放到 <b>img/image.png</b> 即可自动展示<br>（或修改上方 img 标签的 src 地址）</span>
             </div>
+        </div>
+    </section>
+
+    <!-- 能力指标带 -->
+    <section class="metrics">
+        <div class="metric reveal" style="--m-color:#22d3ee; --m-glow:rgba(34,211,238,.45);">
+            <b>10</b><span>项核心能力</span><small>覆盖 学 · 练 · 记 · 析 · 复</small>
+        </div>
+        <div class="metric reveal" style="--m-color:#a855f7; --m-glow:rgba(168,85,247,.45);">
+            <b>2</b><span>种 AI 模型</span><small>魔搭在线 + Ollama 本地离线</small>
+        </div>
+        <div class="metric reveal" style="--m-color:#60a5fa; --m-glow:rgba(96,165,250,.45);">
+            <b>6</b><span>个功能页面</span><small>对话 / 题库 / 课件 / 星图 / 看板</small>
+        </div>
+        <div class="metric reveal" style="--m-color:#34d399; --m-glow:rgba(52,211,153,.45);">
+            <b>100%</b><span>本机数据</span><small>课件与学习记录不出本机</small>
         </div>
     </section>
 
     <!-- 六大功能便当盒 -->
     <div class="section-head">
+        <span class="sec-index">I</span>
         <h2>六大核心功能</h2>
-        <p>SIX CORE FEATURES · 点亮你的 C 语言学习之路</p>
+        <span class="sec-line"></span>
+        <p>SIX CORE FEATURES · 学习闭环的起点</p>
     </div>
 
     <section class="bento">
 
         <!-- 01 AI 调用访问 -->
-        <div class="card card-a">
+        <div class="card reveal card-a">
             <span class="num">01</span>
             <div class="icon-tile">🤖</div>
             <h3>AI 调用访问 <em>联网模式</em></h3>
-            <p>对接魔搭平台 DeepSeek 大模型，在输入框提交 C 语言相关问题，联网获取模型解答，适合查询知识点、排查代码 BUG、理解语法逻辑。</p>
+            <p>对接魔搭 ModelScope 在线大模型（Qwen3.5-35B-A3B），在输入框提交 C 语言问题即可联网获取解答，回答流式逐字呈现，适合查询知识点、排查代码 BUG、理解语法逻辑。</p>
             <div class="deco">
                 <div class="mock-bubble user">这段代码为什么段错误？🤔</div>
                 <div class="mock-bubble">数组越界啦！第 12 行的循环条件 i &lt;= 10 应改为 i &lt; 10 …</div>
@@ -320,40 +510,40 @@
         </div>
 
         <!-- 02 本地知识库访问 -->
-        <div class="card card-b">
+        <div class="card reveal card-b">
             <span class="num">02</span>
             <div class="icon-tile">📦</div>
             <h3>本地知识库访问 <em>离线模式</em></h3>
-            <p>对接 Ollama 部署的 Qwen 本地大模型，无需网络。支持导入 PDF 等 C 语言学习资料构建私有知识库，可基于文档内容离线问答，也支持题目收藏，适合无网环境自学、完成课后作业。</p>
+            <p>对接本机 Ollama 部署的 Qwen 模型，无需联网；思考过程在服务端过滤，页面只显示最终答案。可临时导入一份 PDF 作为本轮问答的补充上下文，适合无网环境自学与课后作业。若需长期保存、多文档管理与按问题检索，请使用下方的「课件知识库」。</p>
             <div class="deco chip-row">
-                <span class="chip">📄 PDF 导入</span>
+                <span class="chip">📄 单份 PDF</span>
                 <span class="chip">🔒 纯离线</span>
-                <span class="chip">🧩 Qwen 私有库</span>
+                <span class="chip">⚡ 流式回答</span>
             </div>
         </div>
 
         <!-- 03 生成专属题目 -->
-        <div class="card card-c">
+        <div class="card reveal card-c">
             <span class="num">03</span>
             <div class="icon-tile">✍️</div>
             <h3>生成专属题目</h3>
-            <p>输入 C 语言目标知识点（如循环、指针、数组等），系统自动生成配套练习题，习题支持本地下载，用于学完知识点后的自测巩固。</p>
+            <p>输入 C 语言目标知识点（循环、指针、数组等），由当前模型生成配套练习题，可下载为 Markdown 试卷，也可一键加入题库，用于学完知识点后的自测巩固。</p>
         </div>
 
         <!-- 04 生成学习文档 -->
-        <div class="card card-d">
+        <div class="card reveal card-d">
             <span class="num">04</span>
             <div class="icon-tile">📥</div>
-            <h3>生成学习文档</h3>
-            <p>在多轮知识点问答结束后，一键触发文档生成功能，自动对对话内容排版整理，导出规范学习笔记到本地，省去手动整理笔记的工作。</p>
+            <h3>生成学习文档 <em>AI 总结报告</em></h3>
+            <p>勾选近 7 天的历史问答记录，由 AI 生成六段式学习总结报告：学习概况、知识点掌握分析、薄弱点诊断、学习建议、逐题分析、下周计划，并自动导出 Markdown 到本地。</p>
         </div>
 
         <!-- 05 生成知识图谱 -->
-        <div class="card card-e">
+        <div class="card reveal card-e">
             <span class="num">05</span>
             <div class="icon-tile">🕸️</div>
-            <h3>生成知识图谱 <em>可视化</em></h3>
-            <p>针对同主题下的多轮对话内容，自动提取知识点并生成可视化知识图谱，梳理知识点间逻辑关联，方便学习者搭建整体知识框架，图谱可截图留存；建议单轮对话聚焦同一主题，保证图谱结构清晰。</p>
+            <h3>生成知识图谱 <em>知识星图</em></h3>
+            <p>从当前会话抽取知识点与关系，在独立页面以「三层星轨」呈现：中心为核心概念、内环为关联知识点、外环为易错点。支持搜索聚焦、点击查看解释、建议学习路径与高清 PNG 导出；按主题分会话提问即可保持结构清晰。</p>
             <div class="deco graph-deco">
                 <svg viewBox="0 0 500 120" preserveAspectRatio="xMidYMid meet">
                     <line class="glink" x1="120" y1="60" x2="60" y2="25"></line>
@@ -378,25 +568,160 @@
         </div>
 
         <!-- 06 我的题库 -->
-        <div class="card card-f">
+        <div class="card reveal card-f">
             <span class="num">06</span>
             <div class="icon-tile">📚</div>
             <h3>我的题库 <em>错题收藏</em></h3>
-            <p>AI 生成习题、问答中遇到的重点题目均可勾选收藏入库；进入题库页面可统一查看，掌握后也可删除对应题目，实现错题管理、反复复盘。</p>
+            <p>AI 习题与问答中的重点题目可一键「加入题库」。每张卡片可展开作答并由 AI 自动批改，记录正确率与掌握度，按艾宾浩斯间隔生成复习队列；支持待复习 / 错题 / 已掌握筛选，主界面还会提醒今日待复习题数。</p>
             <div class="deco kb-list">
-                <div class="kb-item"><span class="dot"></span> 指针与数组内存布局 · 单选 <span class="del">已掌握 ✕</span></div>
-                <div class="kb-item"><span class="dot"></span> for 循环边界改错 · 改错 <span class="del">已掌握 ✕</span></div>
-                <div class="kb-item"><span class="dot"></span> 结构体指针编程 · 编程 <span class="del">已掌握 ✕</span></div>
+                <div class="kb-item"><span class="dot"></span> 指针与数组内存布局 · 待复习 <span class="del">去练习 →</span></div>
+                <div class="kb-item"><span class="dot"></span> for 循环边界改错 · 错题 <span class="del">AI 已批改</span></div>
+                <div class="kb-item"><span class="dot"></span> 结构体指针编程 · 已掌握 <span class="del">✕ 删除</span></div>
             </div>
         </div>
 
     </section>
 
+    <!-- ===== 进阶能力：本次新增的 4 个模块 ===== -->
+    <div class="section-head">
+        <span class="sec-index violet">II</span>
+        <h2>进阶能力 · 新增模块</h2>
+        <span class="sec-line"></span>
+        <p>ADVANCED MODULES · 让学习数据形成闭环</p>
+    </div>
+
+    <section class="adv-grid">
+
+        <!-- 07 课件知识库 -->
+        <article class="adv-card adv-g reveal">
+            <span class="adv-num">07</span>
+            <div class="adv-top">
+                <div class="adv-icon">🗂️</div>
+                <div>
+                    <div class="adv-title">课件知识库</div>
+                    <span class="adv-tag">OFFLINE RAG · 自有资料检索增强</span>
+                </div>
+            </div>
+            <p class="adv-desc">上传自己的 C 语言课件（PDF / Word / TXT / Markdown），系统自动解析、按段落切块并持久保存到本机。提问时先检索出与问题最相关的若干片段，再连同问题交给本地模型，让回答优先依据课件内容并说明来源。全程离线，课件不会发往云端。</p>
+            <div class="adv-deco">
+                <div class="file-row">
+                    <span class="file-pill">📄 PDF</span>
+                    <span class="file-pill">📝 DOCX</span>
+                    <span class="file-pill">🔤 TXT / MD</span>
+                    <span class="file-pill">💾 本地持久化</span>
+                    <span class="file-pill">🔒 纯离线</span>
+                </div>
+                <div class="hit"><b>指针 · 第3章</b><span class="hit-track"><span class="hit-fill" style="width:92%"></span></span><i>92%</i></div>
+                <div class="hit"><b>数组 · 第5章</b><span class="hit-track"><span class="hit-fill" style="width:74%"></span></span><i>74%</i></div>
+                <div class="hit"><b>内存管理</b><span class="hit-track"><span class="hit-fill" style="width:53%"></span></span><i>53%</i></div>
+            </div>
+        </article>
+
+        <!-- 08 历史聊天记录 -->
+        <article class="adv-card adv-h reveal">
+            <span class="adv-num">08</span>
+            <div class="adv-top">
+                <div class="adv-icon">🕐</div>
+                <div>
+                    <div class="adv-title">历史聊天记录</div>
+                    <span class="adv-tag">7 DAYS · 可搜索可追问</span>
+                </div>
+            </div>
+            <p class="adv-desc">每次问答与出题自动留痕，保留最近 7 天。可按关键词搜索、展开查看完整解答，把旧问题一键带回输入框继续追问；同时也是生成学习总结报告的数据来源。</p>
+            <div class="adv-deco tl">
+                <div class="tl-item"><span>今天</span> 指针与数组的区别</div>
+                <div class="tl-item"><span>昨天</span> malloc 为什么要 free</div>
+                <div class="tl-item"><span>3 天前</span> 生成一份循环练习题</div>
+            </div>
+        </article>
+
+        <!-- 09 多轮记忆与会话 -->
+        <article class="adv-card adv-i reveal">
+            <span class="adv-num">09</span>
+            <div class="adv-top">
+                <div class="adv-icon">💬</div>
+                <div>
+                    <div class="adv-title">多轮记忆与会话</div>
+                    <span class="adv-tag">CONTEXT · 最近 6 轮</span>
+                </div>
+            </div>
+            <p class="adv-desc">按主题新建、切换、删除会话，首问自动命名，刷新后聊天仍在。问答与出题携带最近 6 轮上下文，省略式追问也能接上；图谱按当前会话生成，主题不再串线。</p>
+            <div class="adv-deco conv">
+                <div class="conv-b me">指针和数组有什么区别？</div>
+                <div class="conv-b">数组名多数情况会退化为首元素指针…</div>
+                <div class="conv-b me">那 sizeof 呢？</div>
+                <span class="conv-tag">✓ 自动接续上文</span>
+            </div>
+        </article>
+
+        <!-- 10 学习看板 -->
+        <article class="adv-card adv-j reveal">
+            <span class="adv-num">10</span>
+            <div class="adv-top">
+                <div class="adv-icon">📊</div>
+                <div>
+                    <div class="adv-title">学习看板</div>
+                    <span class="adv-tag">DASHBOARD · 学情可视化与复习提醒</span>
+                </div>
+            </div>
+            <p class="adv-desc">汇总提问、练习与错题数据，展示累计提问、活跃天数、练习正确率、今日待复习四项指标，配合近 8 周热力图、7 日趋势、知识点掌握分布与薄弱点 TOP5；按艾宾浩斯间隔给出今日复习队列，一键导出学习简报。纯前端渲染，数据不出本机。</p>
+            <div class="adv-deco">
+                <div class="kpi-mini">
+                    <div><b>128</b><span>累计提问</span></div>
+                    <div><b>23</b><span>活跃天数</span></div>
+                    <div><b>82%</b><span>练习正确率</span></div>
+                    <div><b>5</b><span>今日待复习</span></div>
+                </div>
+                <div class="heat-mini">
+                    <span class="hm l1"></span><span class="hm"></span><span class="hm l2"></span><span class="hm l1"></span><span class="hm l3"></span><span class="hm l2"></span><span class="hm"></span><span class="hm l1"></span><span class="hm l2"></span><span class="hm l3"></span><span class="hm l2"></span><span class="hm"></span><span class="hm l1"></span><span class="hm l2"></span>
+                    <span class="hm"></span><span class="hm l1"></span><span class="hm l2"></span><span class="hm l3"></span><span class="hm l3"></span><span class="hm l2"></span><span class="hm l1"></span><span class="hm"></span><span class="hm l2"></span><span class="hm l3"></span><span class="hm l2"></span><span class="hm l1"></span><span class="hm l2"></span><span class="hm l3"></span>
+                </div>
+            </div>
+        </article>
+
+    </section>
+
+    <!-- 收尾行动区 -->
+    <section class="cta-band reveal">
+        <div class="kicker">START YOUR LEARNING LOOP</div>
+        <h2>把每一次提问，变成看得见的进步</h2>
+        <p>提问 → 依据课件答疑 → 自动出题 → 作答批改 → 错题复习 → 学情分析，一条链路全部留在本机。</p>
+        <div class="quick-links">
+            <a href="index.html">💬 开始对话</a>
+            <a href="kb.html">🗂️ 上传课件</a>
+            <a href="bank.html">📚 进入题库</a>
+            <a href="graph.html">🕸️ 查看星图</a>
+            <a href="dashboard.html">📊 学习看板</a>
+        </div>
+    </section>
+
     <footer class="footer">
-        <b>C语言 AI 小助手</b> · 学 · 练 · 记 · 析 —— 让每一个知识点都被真正掌握
+        <b>C语言 AI 小助手</b> · 学 · 练 · 记 · 析 · 复 —— 让每一个知识点都被真正掌握
     </footer>
 
 </div>
+
+<script>
+(function () {
+    var items = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) return;   // 不支持时元素保持默认可见
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+            if (!en.isIntersecting) return;
+            var el = en.target;
+            el.classList.add('in');
+            el.addEventListener('animationend', function (e) {
+                if (e.target === el) el.classList.remove('in');  // 移除后不覆盖 hover 变换
+            }, { once: true });
+            io.unobserve(el);
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    items.forEach(function (el, i) {
+        el.style.animationDelay = (Math.min(i % 4, 3) * 70) + 'ms';
+        io.observe(el);
+    });
+})();
+</script>
 
 </body>
 </html>
