@@ -114,9 +114,13 @@ function stripThink(s) {
 }
 
 app.post('/api/ollama', async (req, res) => {
-    const { message, pdfText, stream, kbEnabled } = req.body;
+    const { message, pdfText, stream, kbEnabled, task } = req.body;
 
     if (!message) return res.status(400).json({ error: '请求参数缺失，请提供 message' });
+
+    // 图谱抽取是「结构化数据转换」任务，不需要模型长篇推理。
+    // 前端传 task:'graph' 时走专用参数：约束解码 + 关闭思考 + 限制输出长度，显著提速且保证 JSON 合法。
+    const isGraphTask = task === 'graph';
 
     // 注意：不要在提示词里写"禁止输出思考过程"之类的指令——
     // 小模型会把自己的推理过程当成正文输出。正确做法是让模型正常思考，
@@ -146,9 +150,14 @@ app.post('/api/ollama', async (req, res) => {
             { role: 'user', content: message }
         ],
         stream: !!stream,
-        think: true,           // 关键：明确开启思考，qwen3 会把思考放进独立的 message.thinking 字段（下方只取 content，思考内容不会到达前端）
+        think: isGraphTask ? false : true,  // 普通问答显式开启思考（只转发正文 content）；图谱抽取关闭思考以提速
         keep_alive: '30m'      // 提速：模型常驻显存/内存 30 分钟，避免每次请求都重新加载模型
     };
+
+    if (isGraphTask) {
+        ollamaBody.format = 'json';   // Ollama 约束解码，从根上杜绝「模型输出解释文字 / 思考过程导致解析失败」
+        ollamaBody.options = { temperature: 0, num_predict: 2000 };
+    }
 
     try {
         console.log(`收到前端消息: ${message}${pdfText ? ' [附带PDF上下文]' : ''}${kbHitCount ? ` [课件命中${kbHitCount}段]` : ''}${stream ? ' [流式]' : ''}`);
