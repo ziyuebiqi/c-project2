@@ -7,6 +7,7 @@ const multer = require('multer');
 const { PDFParse } = require('pdf-parse');
 const fs = require('fs');
 const path = require('path');
+const kb = require('./kb');
 
 const app = express();
 const port = 3001; 
@@ -16,6 +17,8 @@ app.use(express.json());
 
 // ===== 文件上传配置 =====
 const upload = multer({ dest: path.join(__dirname, 'uploads_tmp') });
+// 知识库上传走内存，直接拿 buffer 交给解析器，不落临时文件
+const kbUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: kb.MAX_FILE_SIZE } });
 const tmpDir = path.join(__dirname, 'uploads_tmp');
 if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
@@ -48,6 +51,56 @@ app.post('/api/upload-pdf', upload.single('pdf'), async (req, res) => {
     }
 });
 
+// ================= 自有课件知识库接口 =================
+
+// 上传课件：解析 -> 分块 -> 持久化
+app.post('/api/kb/upload', kbUpload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ error: '未收到文件' });
+    try {
+        const text = await kb.parseFile(req.file);
+        const doc = kb.addDocument(req.file, text);
+        console.log(`[知识库] 已入库 ${doc.name}：${doc.charCount} 字，切为 ${doc.chunkCount} 块`);
+        res.json({ ok: true, doc });
+    } catch (err) {
+        console.error('[知识库] 上传失败:', err);
+        res.status(500).json({ error: err.message || '课件解析失败' });
+    }
+});
+
+// 文档列表 + 统计
+app.get('/api/kb/list', (req, res) => {
+    try { res.json({ ok: true, ...kb.listDocuments() }); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 删除文档（连同它的所有分块）
+app.post('/api/kb/delete', (req, res) => {
+    const { id } = req.body || {};
+    if (!id) return res.status(400).json({ error: '缺少 id' });
+    const ok = kb.deleteDocument(id);
+    res.json({ ok, error: ok ? undefined : '未找到该文档' });
+});
+
+// 启用 / 停用文档
+app.post('/api/kb/toggle', (req, res) => {
+    const { id, enabled } = req.body || {};
+    if (!id) return res.status(400).json({ error: '缺少 id' });
+    const doc = kb.toggleDocument(id, enabled);
+    res.json({ ok: !!doc, doc });
+});
+
+// 预览某份文档的分块
+app.get('/api/kb/chunks', (req, res) => {
+    res.json({ ok: true, chunks: kb.getChunks(req.query.id) });
+});
+
+// 检索测试（管理页用，也可用于以后换向量检索时对比效果）
+app.post('/api/kb/search', (req, res) => {
+    const { query, topK } = req.body || {};
+    if (!query) return res.status(400).json({ error: '缺少 query' });
+    res.json({ ok: true, results: kb.search(query, topK || 4) });
+});
+
 // ================= 聊天接口 =================
 
 // 兜底清理 qwen3 思考内容：剔除完整的 <think>...</think> 块，
@@ -61,16 +114,30 @@ function stripThink(s) {
 }
 
 app.post('/api/ollama', async (req, res) => {
-    const { message, pdfText, stream } = req.body;
+    const { message, pdfText, stream, kbEnabled } = req.body;
 
     if (!message) return res.status(400).json({ error: '请求参数缺失，请提供 message' });
 
     // 注意：不要在提示词里写"禁止输出思考过程"之类的指令——
     // 小模型会把自己的推理过程当成正文输出。正确做法是让模型正常思考，
     // 思考内容由 Ollama 放进独立的 message.thinking 字段，服务器只转发正文 content。
-    const systemContent = pdfText
+    let systemContent = pdfText
         ? `你是一个专业的C语言AI小助手，负责解答C语言问题、批改代码。下面是一份用户上传的PDF资料，请结合它回答问题：\n\n【PDF资料开始】\n${pdfText}\n【PDF资料结束】`
         : '你是一个专业的C语言AI小助手，负责解答C语言问题、批改代码。回答请简洁明了。';
+
+    // 自有课件知识库：只把检索到的最相关片段注入，不塞整份课件
+    let kbHitCount = 0;
+    if (kbEnabled) {
+        try {
+            const ctx = kb.buildContext(message);
+            if (ctx.text) {
+                kbHitCount = ctx.hits.length;
+                systemContent += `\n\n下面是学生上传的课件资料中与本次问题最相关的片段。请优先依据这些资料回答，并在合适处说明依据来自哪份课件；若资料中没有相关内容，再用你自己的知识作答并说明这一点。\n\n【课件资料开始】\n${ctx.text}\n【课件资料结束】`;
+            }
+        } catch (e) {
+            console.error('[知识库] 检索失败:', e.message);
+        }
+    }
 
     const ollamaBody = {
         model: OLLAMA_MODEL,
@@ -84,7 +151,7 @@ app.post('/api/ollama', async (req, res) => {
     };
 
     try {
-        console.log(`收到前端消息: ${message}${pdfText ? ' [附带PDF上下文]' : ''}${stream ? ' [流式]' : ''}`);
+        console.log(`收到前端消息: ${message}${pdfText ? ' [附带PDF上下文]' : ''}${kbHitCount ? ` [课件命中${kbHitCount}段]` : ''}${stream ? ' [流式]' : ''}`);
 
         const response = await fetch(OLLAMA_URL, {
             method: 'POST',
