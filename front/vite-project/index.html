@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C语言AI小助手</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <!-- 知识图谱已拆到独立页面 graph.html，ECharts 由该页单独加载，主界面不再引入 -->
     <style>
         /* ================= 全局基础设置 ================= */
         * {
@@ -1299,87 +1299,139 @@ ${historyText}`;
     document.getElementById('historyViewCloseBtn').onclick = function() { historyViewModal.classList.remove('show'); };
     historyViewSearch.oninput = renderHistoryView;
 
-    // ================= 生成知识图谱 =================
+    // ================= 生成知识图谱（提速版 · 独立页面呈现） =================
     const graphContainer = document.getElementById('graphContainer');
-    let myChart = null;
+    const GRAPH_DATA_KEY = 'graphData_v2';
 
     document.getElementById('backToChatBtn').onclick = function() {
         graphContainer.style.display = 'none';
         chatBox.style.display = 'block';
     };
 
-    //=========================两个模块==========================
+    // 从模型输出里抠出 JSON（兼容偶发的解释文字 / Markdown 代码块）
+    function extractGraphJSON(text) {
+        if (!text) return null;
+        let s = String(text).trim();
+        const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        if (fence) s = fence[1];
+        const first = s.indexOf('{'), last = s.lastIndexOf('}');
+        if (first === -1 || last <= first) return null;
+        try {
+            const obj = JSON.parse(s.slice(first, last + 1));
+            return (obj && Array.isArray(obj.nodes) && obj.nodes.length) ? obj : null;
+        } catch (e) { return null; }
+    }
+
+    function simpleHash(str) {
+        let h = 5381;
+        for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+        return h.toString(36) + '_' + str.length;
+    }
+
+    // 在用户点击的同步上下文里先开窗，避免异步生成后被浏览器拦截；期间显示深色等待页
+    function openGraphLoadingWindow() {
+        let win = null;
+        try { win = window.open('', '_blank'); } catch (e) { return null; }
+        if (!win) return null;
+        try {
+            win.document.write(`<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>正在构建知识图谱</title>
+<style>body{margin:0;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#1b1740 0%,#0a0f21 55%,#060912 100%);color:#e6ecff;font-family:system-ui,-apple-system,"Microsoft YaHei",sans-serif;overflow:hidden}
+.ring{width:96px;height:96px;border-radius:50%;border:1px solid rgba(34,211,238,.18);border-top:2px solid #22d3ee;border-right:2px solid #a855f7;box-shadow:0 0 40px rgba(120,90,255,.35),inset 0 0 30px rgba(34,211,238,.12);animation:spin 1.4s linear infinite}
+h2{font-size:17px;font-weight:500;letter-spacing:2px;margin:32px 0 10px}p{font-size:12px;color:#8b98bd;letter-spacing:1px}
+@keyframes spin{to{transform:rotate(360deg)}}</style></head>
+<body><div class="ring"></div><h2>正在构建知识星图</h2><p>提取知识点 · 梳理关联 · 定位薄弱点</p></body></html>`);
+            win.document.close();
+        } catch (e) { /* 忽略写入失败，后续仍可正常跳转 */ }
+        return win;
+    }
+
+    function saveGraphData(graphData, cacheKey, fromCache) {
+        localStorage.setItem(GRAPH_DATA_KEY, JSON.stringify({
+            data: graphData,
+            title: (lastQuizTopic || '本次对话') + ' · 知识星图',
+            time: new Date().toLocaleString(),
+            source: fromCache ? '本地缓存' : (useLocalKb ? '本地 Ollama 模型' : '魔搭在线模型')
+        }));
+        localStorage.setItem('graphCurrentCacheKey', cacheKey);
+        if (!fromCache) localStorage.setItem(cacheKey, JSON.stringify(graphData));
+    }
+
+    function showGraphPage(win) {
+        if (win && !win.closed) { win.location.replace('graph.html'); return; }
+        const w = window.open('graph.html', '_blank');
+        if (!w) window.location.href = 'graph.html';
+        else addMsg(`✅ 知识图谱已生成。若窗口未弹出，可 <a href="graph.html" target="_blank" style="color:#22d3ee;">点此打开</a>。`, false, true);
+    }
+
     document.getElementById('genGraphBtn').onclick = async function() {
-    // 改动1：魔塔 API 或 Ollama 任一开启即可
-    if (!useLocalKb && !useAiApi) {
-        return addMsg("⚠️ 请先在左侧开启任一模型（AI 调用访问 或 本地知识库访问）！", false, true);
-    }
-
-    const msgItems = document.querySelectorAll('.msg-item');
-    let historyText = "";
-    msgItems.forEach(item => {
-        const text = item.querySelector('.bubble').innerText.trim();
-        if (text.includes('已开启') || text.includes('已关闭') || text.includes('正在思考')) return;
-        historyText += (item.classList.contains('msg-right') ? `学生问：${text}\n` : `AI答：${text}\n`);
-    });
-
-    if (historyText.length < 10) return addMsg("⚠️ 聊天内容太少！", false, true);
-
-    addMsg("正在提取数据并构建知识图谱...", true);
-    showLoading();
-
-    try {
-        const prompt = `你是数据提取机器人。请提取对话中的知识点关系。必须且只能输出合法的 JSON 格式，绝对不要输出任何解释性文字，不要使用 \`\`\`json 包裹！
-格式样例：
-{
-  "nodes": [{"name": "核心概念", "category": 0, "symbolSize": 50}],
-  "links": [{"source": "核心概念", "target": "薄弱点A", "value": "包含"}],
-  "categories": [{"name": "核心模块"}, {"name": "普通知识点"}, {"name": "薄弱/易错点"}]
-}
-对话记录：\n${historyText}`;
-
-        // 改动2：根据当前开启的模型决定走 3000(魔塔) 还是 3001(Ollama)
-        const payloadExtra = (useLocalKb && pdfText) ? { pdfText } : {};
-        const data = await requestAI(prompt, useLocalKb, payloadExtra);
-        removeLoading();
-
-        if (data.reply) {
-            let jsonStr = data.reply;
-            const firstBrace = jsonStr.indexOf('{');
-            const lastBrace = jsonStr.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-                jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
-            }
-
-            const graphData = JSON.parse(jsonStr);
-            chatBox.style.display = 'none';
-            graphContainer.style.display = 'block';
-
-            if (!myChart) myChart = echarts.init(document.getElementById('graphChart'));
-
-            const option = {
-                tooltip: { formatter: '{b}', backgroundColor: 'rgba(17,24,44,0.9)', borderColor: 'rgba(255,255,255,0.15)', textStyle: { color: '#e5e7eb' } },
-                legend: [{ data: graphData.categories.map(a => a.name), bottom: 0, textStyle: { color: '#cbd5e1' } }],
-                series: [{
-                    type: 'graph', layout: 'force', data: graphData.nodes, links: graphData.links, categories: graphData.categories, roam: true,
-                    label: { show: true, position: 'right', formatter: '{b}', color: '#e2e8f0' },
-                    force: { repulsion: 300, edgeLength: [50, 150], useWorker: true },
-                    itemStyle: { color: function(params) { return ['#22d3ee', '#a855f7', '#f472b6'][params.data.category || 0]; }},
-                    lineStyle: { color: 'source', curveness: 0.2, width: 2 },
-                    edgeSymbol: ['none', 'arrow'], edgeSymbolSize: 8
-                }]
-            };
-            myChart.setOption(option);
-            setTimeout(() => { myChart.resize(); }, 100);
-            addMsg("✅ 知识图谱生成成功！已展示在右侧。", true);
-        } else if (data.error) {
-            addMsg(`❌ 错误：${data.error}`, false, true);
+        if (!useLocalKb && !useAiApi) {
+            return addMsg("⚠️ 请先在左侧开启任一模型（AI 调用访问 或 本地知识库访问）！", false, true);
         }
-    } catch (error) {
-        removeLoading();
-        addMsg(`❌ 解析失败：模型输出的格式不标准。你可以再点一次重试。`, false, true);
-    }
-};
+
+        // 提速①：只取最近 16 条消息，长回答截断，总长封顶 3000 字；不再附带整份 PDF 文本
+        const items = Array.from(document.querySelectorAll('.msg-item')).slice(-16);
+        const historyText = items.map(item => {
+            if (item.id === 'loadingMsg') return '';
+            const bubble = item.querySelector('.bubble');
+            if (!bubble) return '';
+            const raw = (bubble.dataset.raw || bubble.innerText || '').trim();
+            if (!raw || /^(✅|❌|⚠️|📥|正在|已开启|已关闭|✨)/.test(raw)) return '';
+            const isUser = item.classList.contains('msg-right');
+            return (isUser ? '学生问：' : 'AI答：') + raw.slice(0, isUser ? 200 : 400);
+        }).filter(Boolean).join('\n').slice(0, 3000);
+
+        if (historyText.length < 10) return addMsg("⚠️ 聊天内容太少，先围绕一个主题多问几个知识点吧！", false, true);
+
+        // 提速②：同一段对话复用上次结果，秒开；对话内容变了会自动重新生成
+        const cacheKey = 'graphCache_' + simpleHash(historyText);
+        let cached = null;
+        try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch (e) {}
+        if (cached && Array.isArray(cached.nodes) && cached.nodes.length) {
+            saveGraphData(cached, cacheKey, true);
+            showGraphPage(null);
+            addMsg("⚡ 已复用上次生成的知识图谱，秒开。继续提问后会自动生成新图谱。", false, true);
+            return;
+        }
+
+        const graphWin = openGraphLoadingWindow();
+        addMsg("⚡ 正在提取知识点并构建星图（已压缩输入 + 启用 JSON 约束，速度明显提升）...", false, true);
+        showLoading();
+
+        // 提速③：限制节点/关系数量，减少模型生成量；要求每个知识点带一句话解释，供独立页面做详情卡片
+        const prompt = `你是知识图谱数据提取器。根据对话提取 C 语言知识点及其关系，只输出一个 JSON 对象，不要解释文字、不要 Markdown 代码块。
+严格要求：
+1. nodes 为 8-14 个，每项含 name(知识点名，不超过10字)、category(只能是 0/1/2)、value(一句话解释该知识点，不超过30字)；
+2. category 含义：0=核心概念，1=关联知识点，2=易错或薄弱点；至少 1 个 0，尽量有 1-3 个 2；
+3. links 不超过 20 条，每项含 source、target(必须与 nodes 中的 name 完全一致)、value(关系词，如 包含/属于/易错于/需要先掌握)；
+4. categories 固定输出 [{"name":"核心概念"},{"name":"关联知识点"},{"name":"易错 / 薄弱点"}]；
+5. 只输出 JSON，全部使用双引号，不要尾随逗号。
+对话记录：
+${historyText}`;
+
+        const retryPrompt = `只输出合法 JSON，不要任何其他文字。示例格式：{"nodes":[{"name":"指针","category":0,"value":"存放内存地址的变量"}],"links":[{"source":"指针","target":"数组","value":"关联"}],"categories":[{"name":"核心概念"},{"name":"关联知识点"},{"name":"易错 / 薄弱点"}]}。links 的 source 和 target 必须出现在 nodes 中，nodes 8-12 个。根据对话提取：\n${historyText}`;
+
+        try {
+            // 后端收到 task:'graph' 会走 format:'json' + 关闭思考 + 限制输出长度
+            let data = await requestAI(prompt, useLocalKb, { task: 'graph' });
+            let graphData = extractGraphJSON(data.reply);
+            if (!graphData && !data.error) {
+                data = await requestAI(retryPrompt, useLocalKb, { task: 'graph' });
+                graphData = extractGraphJSON(data.reply);
+            }
+            removeLoading();
+            if (graphData) {
+                saveGraphData(graphData, cacheKey, false);
+                addMsg("✅ 知识星图已生成，正在独立页面打开。左侧目录可搜索知识点，点击节点能看解释与关联；外环粉色节点是易错点。", false, true);
+                return showGraphPage(graphWin);
+            }
+            if (graphWin && !graphWin.closed) graphWin.close();
+            addMsg(`❌ ${data.error || '模型未能输出标准图谱数据'}。可再点一次「生成知识图谱」重试。`, false, true);
+        } catch (error) {
+            removeLoading();
+            if (graphWin && !graphWin.closed) graphWin.close();
+            addMsg("❌ 生成失败，请确认后端服务已启动（本地模式为 3001）后重试。", false, true);
+        }
+    };
 
 // ================= 顶部导航交互（纯页面展示层，不影响原有功能） =================
 document.getElementById('askNavBtn').onclick = function() {
