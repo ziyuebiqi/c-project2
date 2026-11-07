@@ -96,7 +96,7 @@
     .hero-head p { margin-top: 10px; font-size: 14px; color: rgba(148, 163, 184, 0.8); letter-spacing: .5px; }
 
     /* ================= 数据统计舱 ================= */
-    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 26px; }
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 26px; }
     .stat-tile {
         position: relative; overflow: hidden;
         border-radius: 20px; padding: 22px 24px;
@@ -110,12 +110,14 @@
     .stat-tile.s1:hover { box-shadow: 0 18px 44px rgba(0,0,0,0.45), 0 0 34px rgba(34,211,238,0.18); }
     .stat-tile.s2:hover { box-shadow: 0 18px 44px rgba(0,0,0,0.45), 0 0 34px rgba(139,92,246,0.2); }
     .stat-tile.s3:hover { box-shadow: 0 18px 44px rgba(0,0,0,0.45), 0 0 34px rgba(244,114,182,0.18); }
+    .stat-tile.s4:hover { box-shadow: 0 18px 44px rgba(0,0,0,0.45), 0 0 34px rgba(52,211,153,0.18); }
     .stat-tile .stat-label { font-size: 12px; color: rgba(148,163,184,0.75); letter-spacing: 2px; margin-bottom: 10px; }
     .stat-tile .stat-value { font-size: 32px; font-weight: 800; line-height: 1; }
     .stat-tile .stat-sub { font-size: 12px; color: rgba(148,163,184,0.6); margin-top: 8px; }
     .s1 .stat-value { color: #22d3ee; text-shadow: 0 0 22px rgba(34,211,238,0.5); }
     .s2 .stat-value { color: #a855f7; text-shadow: 0 0 22px rgba(168,85,247,0.5); }
-    .s3 .stat-value { color: #f472b6; text-shadow: 0 0 22px rgba(244,114,182,0.45); font-size: 16px !important; padding-top: 8px; }
+    .s3 .stat-value { color: #f472b6; text-shadow: 0 0 22px rgba(244,114,182,0.45); }
+    .s4 .stat-value { color: #34d399; text-shadow: 0 0 22px rgba(52,211,153,0.45); }
     .stat-tile::after {
         content: ""; position: absolute; right: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%;
         background: radial-gradient(circle, rgba(255,255,255,0.06), transparent 70%);
@@ -261,9 +263,52 @@
 
     .no-match { text-align: center; color: rgba(148,163,184,0.6); padding: 60px 0; font-size: 14px; }
 
+    /* ================= 练习 / AI 批改 ================= */
+    .status-pill { font-size: 11px; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+    .st-due { background: rgba(251,146,60,.12); border: 1px solid rgba(251,146,60,.4); color: #fdba74; }
+    .st-wrong { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.4); color: #fca5a5; }
+    .st-ok { background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.4); color: #6ee7b7; }
+    .st-new { background: rgba(148,163,184,.1); border: 1px solid rgba(148,163,184,.28); color: #cbd5e1; }
+    .card-actions { display: flex; gap: 8px; align-items: center; }
+    .btn-practice {
+        font-size: 12.5px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+        color: #06121f; font-weight: 600; border: none; white-space: nowrap;
+        background: linear-gradient(135deg, #22d3ee, #8b5cf6);
+        box-shadow: 0 0 14px rgba(34,211,238,.3); transition: all .2s;
+    }
+    .btn-practice:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .practice-panel { margin-top: 16px; padding: 18px; border-radius: 16px; background: rgba(4,8,20,.45); border: 1px solid rgba(34,211,238,.22); }
+    .practice-panel h4 { font-size: 13px; color: #7dd3fc; margin-bottom: 10px; letter-spacing: 1px; }
+    .practice-panel textarea {
+        width: 100%; min-height: 110px; resize: vertical; padding: 14px;
+        border-radius: 12px; outline: none; font-size: 14px; line-height: 1.7;
+        background: rgba(0,0,0,.35); border: 1px solid rgba(255,255,255,.12);
+        color: #e5e7eb; font-family: Consolas, "Microsoft Yahei", monospace;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .practice-panel textarea:focus { border-color: rgba(34,211,238,.6); box-shadow: 0 0 16px rgba(34,211,238,.15); }
+    .practice-actions { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .btn-grade { font-size: 13px; padding: 9px 22px; border-radius: 999px; cursor: pointer; border: none; font-weight: 600; color: #06121f; background: linear-gradient(135deg,#22d3ee,#a855f7); box-shadow: 0 0 18px rgba(168,85,247,.3); }
+    .btn-grade:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-ghost { font-size: 12.5px; padding: 8px 16px; border-radius: 999px; cursor: pointer; color: #cbd5e1; background: transparent; border: 1px solid rgba(255,255,255,.15); }
+    .btn-ghost:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .grade-hint { font-size: 12px; color: rgba(148,163,184,.7); }
+    .feedback { margin-top: 16px; padding: 16px 18px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); }
+    .feedback.ok { border-color: rgba(52,211,153,.35); background: rgba(52,211,153,.06); }
+    .feedback.bad { border-color: rgba(248,113,113,.35); background: rgba(248,113,113,.06); }
+    .feedback-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 14px; font-weight: 600; }
+    .feedback-head .score { margin-left: auto; font-family: Consolas, monospace; font-size: 13px; color: #7dd3fc; }
+    .feedback p { font-size: 13.5px; line-height: 1.8; color: #e5e7eb; white-space: pre-wrap; }
+    .fb-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .fb-tag { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; background: rgba(139,92,246,.14); border: 1px solid rgba(139,92,246,.32); color: #c4b5fd; }
+    .fb-tag.warn { background: rgba(251,146,60,.12); border-color: rgba(251,146,60,.35); color: #fdba74; }
+    .fb-time { font-size: 11px; color: rgba(148,163,184,.55); margin-top: 10px; }
+    .topic-chip.warn.active { background: linear-gradient(135deg, rgba(251,146,60,.9), rgba(244,63,94,.85)); box-shadow: 0 0 16px rgba(251,146,60,.35); }
+
     @media (max-width: 720px) {
-        .stats-row { grid-template-columns: 1fr; }
+        .stats-row { grid-template-columns: repeat(2, 1fr); }
         .hero-head h1 { font-size: 30px; }
+        .bank-card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 </style>
 </head>
@@ -286,6 +331,7 @@
         </div>
         <div class="nav-right">
             <span class="count-pill">已收录 <b id="kbBadge">0</b> 题</span>
+            <button class="btn-back" onclick="window.location.href='dashboard.html'">📊 学习看板</button>
             <button class="btn-back" onclick="window.location.href='index.html'">⬅ 返回对话</button>
         </div>
     </header>
@@ -294,7 +340,7 @@
     <section class="hero-head">
         <span class="eyebrow">QUESTION VAULT</span>
         <h1>我的专属题库</h1>
-        <p>收藏的重点题目与 AI 生成习题都在这里 · 掌握后可删除，实现错题管理与反复复盘</p>
+        <p>作答后由 AI 自动批改 · 记录错题与掌握度 · 按艾宾浩斯间隔提醒复习，把收藏变成真正的错题本</p>
     </section>
 
     <!-- 数据统计舱 -->
@@ -305,14 +351,19 @@
             <div class="stat-sub">每一道都是你的成长刻度</div>
         </div>
         <div class="stat-tile s2">
-            <div class="stat-label">覆盖知识点</div>
-            <div class="stat-value" id="statTopics">0</div>
-            <div class="stat-sub">按主题分类，精准复盘</div>
+            <div class="stat-label">今日待复习</div>
+            <div class="stat-value" id="statDue">0</div>
+            <div class="stat-sub">按遗忘曲线自动排期</div>
         </div>
         <div class="stat-tile s3">
-            <div class="stat-label">最近收录</div>
-            <div class="stat-value" id="statLatest">暂无记录</div>
-            <div class="stat-sub">保持节奏，持续积累</div>
+            <div class="stat-label">练习正确率</div>
+            <div class="stat-value" id="statAccuracy">—</div>
+            <div class="stat-sub" id="statPracticeCount">还没有练习记录</div>
+        </div>
+        <div class="stat-tile s4">
+            <div class="stat-label">已掌握</div>
+            <div class="stat-value" id="statMastered">0</div>
+            <div class="stat-sub">连对两次自动出舱</div>
         </div>
     </section>
 
@@ -333,15 +384,59 @@
 </div>
 
 <script>
-    // ================= 读取本地存储（保持原逻辑） =================
-    let questionBank = JSON.parse(localStorage.getItem('myQuestionBank')) || [];
+    // ================= 读取本地存储（兼容旧题目，补齐练习字段） =================
+    let questionBank = [];
+    try {
+        const raw = JSON.parse(localStorage.getItem('myQuestionBank') || '[]');
+        if (Array.isArray(raw)) questionBank = raw;
+    } catch (e) { questionBank = []; }
+
+    const GRADE_API = 'http://localhost:3001/api/ollama';
+    const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30];   // 与 index.html / dashboard.html 保持一致
+    let levelMigrated = false;
+    questionBank.forEach(q => {
+        if (!q || typeof q !== 'object') return;
+        if (typeof q.level !== 'number') { q.level = 0; levelMigrated = true; }
+        if (typeof q.wrongCount !== 'number') { q.wrongCount = 0; levelMigrated = true; }
+        if (typeof q.rightCount !== 'number') { q.rightCount = 0; levelMigrated = true; }
+        if (typeof q.lastReview !== 'number') { q.lastReview = 0; levelMigrated = true; }
+        if (typeof q.mastered !== 'boolean') { q.mastered = false; levelMigrated = true; }
+    });
+    function saveBank() { localStorage.setItem('myQuestionBank', JSON.stringify(questionBank)); }
+    if (levelMigrated) saveBank();
+
+    // 艾宾浩斯：level 越高间隔越长；答错归零；连对 2 次算出舱（已掌握）
+    function isDue(q) {
+        if (!q || q.mastered) return false;
+        if (!q.lastReview) return true;
+        const step = Math.min(Number(q.level) || 0, REVIEW_INTERVALS.length - 1);
+        return Date.now() - q.lastReview >= REVIEW_INTERVALS[step] * 86400000;
+    }
+    function nextReviewDate(q) {
+        if (!q.lastReview) return '尚未练习';
+        const step = Math.min(Number(q.level) || 0, REVIEW_INTERVALS.length - 1);
+        return new Date(q.lastReview + REVIEW_INTERVALS[step] * 86400000).toLocaleDateString();
+    }
+    function statusOf(q) {
+        if (q.mastered) return { cls: 'st-ok', text: '✓ 已掌握' };
+        if (isDue(q) && Number(q.wrongCount) > 0) return { cls: 'st-due', text: `待复习 · 错过 ${q.wrongCount} 次` };
+        if (isDue(q)) return { cls: 'st-due', text: '待复习' };
+        if (Number(q.wrongCount) > 0) return { cls: 'st-wrong', text: `✗ 错过 ${q.wrongCount} 次` };
+        return { cls: 'st-new', text: '新题待练' };
+    }
+    function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
     const bankList = document.getElementById('bankList');
     const kbBadge = document.getElementById('kbBadge');
     const searchInput = document.getElementById('searchInput');
     const topicChips = document.getElementById('topicChips');
 
     let keyword = '';
-    let activeTopic = '全部';
+    let activeFilter = '全部';
+    let expandedId = null;
 
     // ================= 霓虹配色池（按知识点轮换） =================
     const ACCENTS = [
@@ -362,41 +457,82 @@
         kbBadge.textContent = questionBank.length;
         kbBadge.parentElement.style.display = questionBank.length > 0 ? '' : 'none';
 
+        const right = questionBank.reduce((s, q) => s + (Number(q.rightCount) || 0), 0);
+        const wrong = questionBank.reduce((s, q) => s + (Number(q.wrongCount) || 0), 0);
+        const total = right + wrong;
         document.getElementById('statTotal').textContent = questionBank.length;
-        const topics = [...new Set(questionBank.map(q => q.topic))];
-        document.getElementById('statTopics').textContent = topics.length;
-        document.getElementById('statLatest').textContent = questionBank.length
-            ? questionBank[questionBank.length - 1].time
-            : '暂无记录';
+        document.getElementById('statDue').textContent = questionBank.filter(isDue).length;
+        document.getElementById('statMastered').textContent = questionBank.filter(q => q.mastered).length;
+        document.getElementById('statAccuracy').textContent = total ? Math.round(right / total * 100) + '%' : '—';
+        document.getElementById('statPracticeCount').textContent = total ? `共练习 ${total} 次` : '还没有练习记录';
     }
 
-    // ================= 知识点筛选 =================
+    // ================= 筛选：状态 + 知识点（单维度，避免双重高亮） =================
     function renderChips() {
         const topics = [...new Set(questionBank.map(q => q.topic))];
         topicChips.innerHTML = '';
-        const all = document.createElement('span');
-        all.className = 'topic-chip' + (activeTopic === '全部' ? ' active' : '');
-        all.textContent = `全部 (${questionBank.length})`;
-        all.onclick = () => { activeTopic = '全部'; renderChips(); renderBank(); };
-        topicChips.appendChild(all);
-        topics.forEach(t => {
+        const mk = (label, value, cls) => {
             const chip = document.createElement('span');
-            const cnt = questionBank.filter(q => q.topic === t).length;
-            chip.className = 'topic-chip' + (activeTopic === t ? ' active' : '');
-            chip.textContent = `${t} (${cnt})`;
-            chip.onclick = () => { activeTopic = t; renderChips(); renderBank(); };
+            chip.className = 'topic-chip' + (cls || '') + (activeFilter === value ? ' active' : '');
+            chip.textContent = label;
+            chip.onclick = () => { activeFilter = value; expandedId = null; renderChips(); renderBank(); };
             topicChips.appendChild(chip);
+        };
+        mk(`全部 (${questionBank.length})`, '全部');
+        mk(`待复习 (${questionBank.filter(isDue).length})`, '待复习', ' warn');
+        mk(`错题 (${questionBank.filter(q => Number(q.wrongCount) > 0 && !q.mastered).length})`, '错题');
+        mk(`已掌握 (${questionBank.filter(q => q.mastered).length})`, '已掌握');
+
+        const sep = document.createElement('span');
+        sep.style.cssText = 'width:1px;height:22px;background:rgba(255,255,255,.12);align-self:center;margin:0 4px;';
+        topicChips.appendChild(sep);
+
+        topics.forEach(t => {
+            const cnt = questionBank.filter(q => q.topic === t).length;
+            mk(`${t} (${cnt})`, t);
         });
+    }
+
+    // ================= 练习面板 / 批改反馈的 HTML 片段 =================
+    function practiceHtml(q) {
+        return `<div class="practice-panel">
+            <h4>✍️ 写下你的答案（代码 / 简答都可以）</h4>
+            <textarea id="answer_${escapeHtml(q.id)}" placeholder="在这里作答，AI 会对照题目批改、给出分数并指出薄弱点..."></textarea>
+            <div class="practice-actions">
+                <button class="btn-grade" data-act="grade" data-id="${escapeHtml(q.id)}">✨ 提交 AI 批改</button>
+                <button class="btn-ghost" data-act="cancel">收起</button>
+                <span class="grade-hint">批改由本地 Ollama 完成，需先启动 3001 服务</span>
+            </div>
+        </div>`;
+    }
+    function feedbackHtml(fb) {
+        const ok = !!fb.correct;
+        const weak = Array.isArray(fb.weakPoints) ? fb.weakPoints : [];
+        const key = Array.isArray(fb.keyPoints) ? fb.keyPoints : [];
+        return `<div class="feedback ${ok ? 'ok' : 'bad'}">
+            <div class="feedback-head">
+                <span>${ok ? '✅ 回答正确' : '❌ 还需巩固'}</span>
+                <span class="score">得分 ${escapeHtml(fb.score)} / 100</span>
+            </div>
+            <p>${escapeHtml(fb.feedback || '（无评语）')}</p>
+            ${key.length ? `<div class="fb-tags">${key.map(k => `<span class="fb-tag">${escapeHtml(k)}</span>`).join('')}</div>` : ''}
+            ${weak.length ? `<div class="fb-tags">${weak.map(k => `<span class="fb-tag warn">薄弱：${escapeHtml(k)}</span>`).join('')}</div>` : ''}
+            <div class="fb-time">批改时间：${escapeHtml(fb.time || '')} · 下次复习：${escapeHtml(fb.next || '')}</div>
+        </div>`;
     }
 
     // ================= 渲染题库 =================
     function renderBank() {
-        // 关键词 + 知识点双重过滤
+        // 状态筛选 + 关键词搜索
         const filtered = [...questionBank].reverse().filter(q => {
-            const matchTopic = activeTopic === '全部' || q.topic === activeTopic;
+            let matchFilter = true;
+            if (activeFilter === '待复习') matchFilter = isDue(q);
+            else if (activeFilter === '错题') matchFilter = Number(q.wrongCount) > 0 && !q.mastered;
+            else if (activeFilter === '已掌握') matchFilter = !!q.mastered;
+            else if (activeFilter !== '全部') matchFilter = q.topic === activeFilter;
             const plain = (q.content || '').replace(/<[^>]+>/g, '');
-            const matchKeyword = !keyword || q.topic.includes(keyword) || plain.includes(keyword);
-            return matchTopic && matchKeyword;
+            const matchKeyword = !keyword || (q.topic || '').includes(keyword) || plain.includes(keyword);
+            return matchFilter && matchKeyword;
         });
 
         if (questionBank.length === 0) {
@@ -412,7 +548,7 @@
         }
 
         if (filtered.length === 0) {
-            bankList.innerHTML = `<div class="no-match">🔭 没有匹配的题目，换个关键词或知识点试试</div>`;
+            bankList.innerHTML = `<div class="no-match">🔭 当前筛选下没有题目，换个筛选条件或关键词试试</div>`;
             return;
         }
 
@@ -432,10 +568,12 @@
                 <div class="bank-card-header">
                     <div class="bank-card-meta">
                         <span class="q-index" style="color:${a.text};">#${String(idx + 1).padStart(3, '0')}</span>
-                        <span>收录时间：${q.time}</span>
-                        <span class="knowledge-tag">${q.topic}</span>
+                        <span>收录：${escapeHtml(q.time)}</span>
+                        <span class="status-pill ${statusOf(q).cls}">${escapeHtml(statusOf(q).text)}</span>
+                        <span class="knowledge-tag">${escapeHtml(q.topic)}</span>
+                        <span>下次复习：${escapeHtml(nextReviewDate(q))}</span>
                     </div>
-                    <button class="btn-delete" onclick="deleteQuestion('${q.id}')">
+                    <button class="btn-delete" data-act="delete" data-id="${escapeHtml(q.id)}">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         掌握了，删除
                     </button>
@@ -443,8 +581,34 @@
                 <div class="bank-card-body">
                     ${q.content}
                 </div>
+                <div class="practice-actions" style="margin-top:14px">
+                    <button class="btn-practice" data-act="practice" data-id="${escapeHtml(q.id)}">${expandedId === q.id ? '收起' : '✏️ 开始练习'}</button>
+                    <span class="grade-hint">AI 会批改你的作答并记录掌握度</span>
+                </div>
+                ${q.lastFeedback ? feedbackHtml(q.lastFeedback) : ''}
+                ${expandedId === q.id ? practiceHtml(q) : ''}
             `;
             bankList.appendChild(card);
+        });
+
+        bankList.querySelectorAll('[data-act="practice"]').forEach(btn => {
+            btn.onclick = () => {
+                expandedId = expandedId === btn.dataset.id ? null : btn.dataset.id;
+                renderBank();
+                if (expandedId) {
+                    const ta = document.getElementById('answer_' + expandedId);
+                    if (ta) { ta.focus(); if (ta.scrollIntoView) ta.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+                }
+            };
+        });
+        bankList.querySelectorAll('[data-act="cancel"]').forEach(btn => {
+            btn.onclick = () => { expandedId = null; renderBank(); };
+        });
+        bankList.querySelectorAll('[data-act="grade"]').forEach(btn => {
+            btn.onclick = () => gradeAnswer(btn.dataset.id);
+        });
+        bankList.querySelectorAll('[data-act="delete"]').forEach(btn => {
+            btn.onclick = () => deleteQuestion(btn.dataset.id);
         });
     }
 
@@ -459,6 +623,76 @@
         renderChips();
         renderBank();
     };
+
+    // ================= AI 批改（复用 3001 的 task:'grade' 结构化任务） =================
+    async function gradeAnswer(id) {
+        const q = questionBank.find(x => x.id === id);
+        const ta = document.getElementById('answer_' + id);
+        if (!q || !ta) return;
+        const answer = ta.value.trim();
+        if (!answer) return alert('先写下你的答案再提交～');
+
+        const btn = bankList.querySelector('[data-act="grade"][data-id="' + id + '"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'AI 批改中...'; }
+
+        const questionPlain = String(q.content || '')
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+            .slice(0, 1800);
+
+        const prompt = `你是C语言阅卷老师。请批改学生对下面这道题的作答，只输出一个合法 JSON 对象，不要输出解释文字，不要用代码块包裹。
+JSON 格式：{"correct": true或false, "score": 0到100的整数, "feedback": "具体评语：指出对在哪里、错在哪里，并给出正确思路（150字以内）", "keyPoints": ["本题考查的知识点"], "weakPoints": ["学生暴露的薄弱点，没有则空数组"]}
+判定标准：核心思路正确且关键语法无误即为 true；只写概念不写代码、或关键结论错误则为 false。
+
+【题目】
+${questionPlain}
+
+【学生作答】
+${answer.slice(0, 1500)}`;
+
+        try {
+            const resp = await fetch(GRADE_API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: prompt, task: 'grade', stream: false })
+            });
+            const data = await resp.json();
+            if (data.error) throw new Error(data.error);
+            const raw = data.reply || '';
+            const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+            if (s === -1 || e <= s) throw new Error('模型未返回有效批改结果');
+            const fb = JSON.parse(raw.slice(s, e + 1));
+            const correct = fb.correct === true || fb.correct === 'true';
+
+            q.rightCount = (Number(q.rightCount) || 0) + (correct ? 1 : 0);
+            q.wrongCount = (Number(q.wrongCount) || 0) + (correct ? 0 : 1);
+            q.level = correct ? Math.min((Number(q.level) || 0) + 1, REVIEW_INTERVALS.length - 1) : 0;
+            q.mastered = q.level >= 2;
+            q.lastReview = Date.now();
+            if (!Array.isArray(q.practiceLog)) q.practiceLog = [];
+            q.practiceLog.push({ ts: q.lastReview, correct: correct, score: Number(fb.score) || 0 });
+            if (q.practiceLog.length > 60) q.practiceLog = q.practiceLog.slice(-60);
+            q.lastFeedback = {
+                correct: correct,
+                score: Number(fb.score) || 0,
+                feedback: String(fb.feedback || '').slice(0, 600),
+                keyPoints: (Array.isArray(fb.keyPoints) ? fb.keyPoints : []).slice(0, 5).map(String),
+                weakPoints: (Array.isArray(fb.weakPoints) ? fb.weakPoints : []).slice(0, 5).map(String),
+                time: new Date().toLocaleString(),
+                next: new Date(q.lastReview + REVIEW_INTERVALS[q.level] * 86400000).toLocaleDateString()
+            };
+
+            saveBank();
+            expandedId = null;
+            updateStats();
+            renderChips();
+            renderBank();
+        } catch (err) {
+            alert('批改失败：' + err.message + '\n\n请确认已启动 3001 后端（node server-ollama.js）并已拉取 qwen3:4b 模型。');
+            if (btn) { btn.disabled = false; btn.textContent = '✨ 提交 AI 批改'; }
+        }
+    }
 
     // ================= 搜索 =================
     searchInput.oninput = function() {
