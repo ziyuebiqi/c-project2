@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识星图 · C语言 AI 小助手</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --cyan: #22d3ee; --purple: #a855f7; --pink: #fb7185;
+        --txt: #e8edff; --muted: #8e9bc0; --line: rgba(255,255,255,0.09);
+        --glass: rgba(16, 21, 44, 0.62);
+    }
+    body {
+        height: 100vh; overflow: hidden; color: var(--txt);
+        font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+        background: radial-gradient(ellipse at 22% 12%, #1b1740 0%, transparent 48%),
+                    radial-gradient(ellipse at 82% 82%, #0c2a46 0%, transparent 46%),
+                    linear-gradient(145deg, #070a18 0%, #0a0d20 55%, #060912 100%);
+    }
+    .bg-grid {
+        position: fixed; inset: 0; pointer-events: none; opacity: .35;
+        background-image: linear-gradient(rgba(120,150,255,.055) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(120,150,255,.055) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: radial-gradient(ellipse at 50% 45%, #000 20%, transparent 78%);
+    }
+    .orb { position: fixed; border-radius: 50%; filter: blur(90px); pointer-events: none; opacity: .32; }
+    .orb-a { width: 420px; height: 420px; top: -160px; left: 12%; background: #6d3ce0; }
+    .orb-b { width: 380px; height: 380px; bottom: -180px; right: 10%; background: #0e7490; }
+    .scanline { position: fixed; top: 0; left: 0; right: 0; height: 1px; pointer-events: none;
+        background: linear-gradient(90deg, transparent, rgba(34,211,238,.55), rgba(168,85,247,.55), transparent); }
+
+    .app { position: relative; height: 100vh; display: flex; flex-direction: column; padding: 14px 18px 10px; gap: 12px; }
+
+    /* ================= 顶栏 ================= */
+    .topbar {
+        display: flex; align-items: center; gap: 20px; padding: 12px 18px; flex-shrink: 0;
+        background: var(--glass); backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
+        border: 1px solid var(--line); border-radius: 20px;
+        box-shadow: 0 12px 40px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 230px; }
+    .brand-mark {
+        width: 40px; height: 40px; flex-shrink: 0; display: grid; place-items: center; font-size: 21px;
+        border-radius: 13px; color: #dff9ff;
+        background: linear-gradient(135deg, rgba(34,211,238,.28), rgba(168,85,247,.32));
+        border: 1px solid rgba(34,211,238,.38);
+        box-shadow: 0 0 22px rgba(34,211,238,.28), inset 0 0 16px rgba(168,85,247,.2);
+    }
+    .brand h1 { font-size: 16px; font-weight: 600; letter-spacing: 1px; }
+    .brand p { font-size: 10.5px; color: var(--muted); letter-spacing: 1.3px; margin-top: 3px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stats { display: flex; gap: 9px; margin-left: auto; }
+    .stat {
+        min-width: 78px; padding: 7px 13px; border-radius: 13px; text-align: center;
+        background: rgba(255,255,255,.035); border: 1px solid var(--line);
+    }
+    .stat b { display: block; font-size: 18px; font-weight: 600; font-family: ui-monospace, Consolas, monospace; line-height: 1.2; }
+    .stat span { font-size: 10px; color: var(--muted); letter-spacing: .6px; }
+    .stat.c0 b { color: #67e8f9; text-shadow: 0 0 14px rgba(34,211,238,.5); }
+    .stat.c1 b { color: #c4b5fd; text-shadow: 0 0 14px rgba(168,85,247,.5); }
+    .stat.c2 b { color: #fda4af; text-shadow: 0 0 14px rgba(251,113,133,.5); }
+    .tools { display: flex; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+    .tool {
+        padding: 8px 13px; font-size: 11.5px; color: #cbd5e1; cursor: pointer; white-space: nowrap;
+        background: rgba(255,255,255,.045); border: 1px solid var(--line); border-radius: 999px;
+        text-decoration: none; transition: .22s; font-family: inherit;
+    }
+    .tool:hover { color: #fff; background: rgba(34,211,238,.14); border-color: rgba(34,211,238,.4); box-shadow: 0 0 16px rgba(34,211,238,.18); }
+    .tool.primary { color: #eafcff; background: linear-gradient(120deg, rgba(34,211,238,.24), rgba(168,85,247,.28)); border-color: rgba(120,200,255,.36); }
+    .tool.primary:hover { box-shadow: 0 0 22px rgba(120,160,255,.35); }
+
+    /* ================= 三栏主体 ================= */
+    .main { flex: 1; min-height: 0; display: grid; grid-template-columns: 258px minmax(0,1fr) 276px; gap: 12px; }
+    .panel {
+        display: flex; flex-direction: column; min-height: 0; padding: 16px 14px;
+        background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--line); border-radius: 20px; overflow: hidden;
+        box-shadow: 0 12px 36px rgba(0,0,0,.26);
+    }
+    .panel-head { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; letter-spacing: .8px; margin-bottom: 13px; }
+    .panel-head.small { font-size: 11.5px; margin: 4px 0 10px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+    .dot.purple { background: var(--purple); box-shadow: 0 0 10px var(--purple); }
+    .dot.pink { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+    .count { margin-left: auto; font-size: 10.5px; color: var(--muted); font-weight: 400; font-family: ui-monospace, Consolas, monospace; }
+    .search-wrap { position: relative; margin-bottom: 11px; flex-shrink: 0; }
+    .search-wrap input {
+        width: 100%; padding: 9px 30px 9px 12px; font-size: 12px; color: var(--txt); outline: none;
+        background: rgba(6,10,24,.6); border: 1px solid var(--line); border-radius: 11px; font-family: inherit;
+        transition: .2s;
+    }
+    .search-wrap input:focus { border-color: rgba(34,211,238,.55); box-shadow: 0 0 0 3px rgba(34,211,238,.09); }
+    .search-wrap input::placeholder { color: #63718f; }
+    .search-icon { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); color: #6f7ea3; font-size: 15px; pointer-events: none; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; flex-shrink: 0; }
+    .chip {
+        padding: 5px 10px; font-size: 10.5px; color: #9dabc9; cursor: pointer; border-radius: 999px;
+        background: rgba(255,255,255,.035); border: 1px solid var(--line); transition: .2s;
+    }
+    .chip:hover { color: #fff; }
+    .chip.on { color: #fff; background: rgba(34,211,238,.15); border-color: rgba(34,211,238,.45); }
+    .dir-list { flex: 1; min-height: 80px; overflow-y: auto; padding-right: 4px; }
+    .group-title { display: flex; align-items: center; gap: 7px; font-size: 10.5px; color: var(--muted); letter-spacing: 1px; margin: 10px 0 7px; }
+    .group-title i { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+    .dir-item {
+        display: flex; align-items: center; gap: 9px; padding: 8px 9px; margin-bottom: 5px; cursor: pointer;
+        border-radius: 10px; border: 1px solid transparent; transition: .18s;
+    }
+    .dir-item:hover { background: rgba(255,255,255,.055); border-color: var(--line); }
+    .dir-item.active { background: rgba(34,211,238,.11); border-color: rgba(34,211,238,.34); }
+    .dir-item.dim { opacity: .35; }
+    .dir-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dir-name { font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dir-deg { font-size: 10px; color: #6f7ea3; font-family: ui-monospace, Consolas, monospace; }
+    .path-box { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); flex-shrink: 0; max-height: 40%; display: flex; flex-direction: column; }
+    .path-list { overflow-y: auto; list-style: none; counter-reset: step; padding-right: 4px; }
+    .path-list li { counter-increment: step; display: flex; gap: 8px; align-items: flex-start; font-size: 11px; color: #b6c3e0; padding: 5px 0; cursor: pointer; line-height: 1.5; }
+    .path-list li:hover { color: #fff; }
+    .path-list li::before { content: counter(step); flex-shrink: 0; width: 17px; height: 17px; border-radius: 6px; display: grid; place-items: center; font-size: 9.5px; color: #dff9ff; background: rgba(34,211,238,.16); border: 1px solid rgba(34,211,238,.3); font-family: ui-monospace, Consolas, monospace; }
+    .path-list li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ================= 画布 ================= */
+    .stage {
+        position: relative; min-width: 0; overflow: hidden; border-radius: 22px;
+        background: radial-gradient(ellipse at 50% 48%, rgba(23,29,64,.5) 0%, rgba(8,12,28,.72) 62%, rgba(6,9,20,.9) 100%);
+        border: 1px solid var(--line);
+        box-shadow: inset 0 0 70px rgba(60,80,180,.10), 0 14px 40px rgba(0,0,0,.3);
+    }
+    .stage::before {
+        content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+        background-image: linear-gradient(rgba(120,150,255,.04) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(120,150,255,.04) 1px, transparent 1px);
+        background-size: 36px 36px;
+    }
+    .orbit { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); border-radius: 50%; pointer-events: none; border: 1px dashed rgba(130,160,255,.12); }
+    .orbit-1 { width: 46%; aspect-ratio: 1 / .84; }
+    .orbit-2 { width: 74%; aspect-ratio: 1 / .84; border-color: rgba(168,85,247,.11); }
+    .stage-title { position: absolute; top: 14px; left: 16px; right: 16px; z-index: 4; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+    .stage-badge { font-size: 9.5px; letter-spacing: 2px; color: #8ff0ff; padding: 4px 9px; border-radius: 999px; background: rgba(34,211,238,.1); border: 1px solid rgba(34,211,238,.28); }
+    #stageHint { font-size: 10.5px; color: #6f7ea3; }
+    #chart { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .legend { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 92%; padding: 7px 12px; border-radius: 14px; background: rgba(8,12,28,.72); border: 1px solid var(--line); backdrop-filter: blur(12px); }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: #aab8d8; white-space: nowrap; }
+    .legend-item i { width: 9px; height: 9px; border-radius: 50%; }
+    .empty { position: absolute; inset: 0; z-index: 6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; background: rgba(6,9,20,.86); }
+    .empty h2 { font-size: 17px; font-weight: 500; }
+    .empty p { font-size: 12px; color: var(--muted); line-height: 1.9; }
+    .empty[hidden] { display: none; }
+    .demo-tip { position: absolute; top: 14px; right: 16px; z-index: 5; font-size: 10.5px; color: #fbbf24; padding: 5px 11px; border-radius: 999px; background: rgba(251,191,36,.09); border: 1px solid rgba(251,191,36,.3); }
+
+    /* ================= 详情 ================= */
+    .detail-scroll { flex: 1; overflow-y: auto; padding-right: 4px; }
+    .detail-card h2 { font-size: 20px; font-weight: 600; margin: 9px 0 8px; line-height: 1.35; }
+    .badge { display: inline-block; font-size: 10px; padding: 4px 10px; border-radius: 999px; letter-spacing: .5px; }
+    .detail-value { font-size: 12px; color: #c3cfe9; line-height: 1.85; padding: 11px 12px; border-radius: 12px; background: rgba(255,255,255,.035); border: 1px solid var(--line); }
+    .detail-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 16px; }
+    .metric { padding: 10px; border-radius: 11px; background: rgba(255,255,255,.03); border: 1px solid var(--line); text-align: center; }
+    .metric b { display: block; font-size: 16px; font-family: ui-monospace, Consolas, monospace; color: #8ff0ff; }
+    .metric span { font-size: 10px; color: var(--muted); }
+    .sec-title { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin: 16px 0 9px; display: flex; align-items: center; gap: 7px; }
+    .sec-title::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+    .rel-list { list-style: none; }
+    .rel-item { display: flex; align-items: center; gap: 7px; font-size: 11.5px; padding: 8px 9px; margin-bottom: 6px; border-radius: 10px; background: rgba(255,255,255,.03); border: 1px solid var(--line); cursor: pointer; transition: .18s; }
+    .rel-item:hover { background: rgba(34,211,238,.1); border-color: rgba(34,211,238,.3); }
+    .rel-word { font-size: 10px; color: #8ff0ff; padding: 2px 6px; border-radius: 6px; background: rgba(34,211,238,.1); white-space: nowrap; }
+    .rel-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rel-arrow { color: #6f7ea3; }
+    .weak-tip { margin-top: 14px; padding: 11px 12px; font-size: 11px; line-height: 1.8; color: #ffd0d8; border-radius: 12px; background: rgba(251,113,133,.09); border: 1px solid rgba(251,113,133,.28); }
+    .overview { font-size: 11.5px; color: #aebbd8; line-height: 1.95; }
+    .overview .ov-hero { text-align: center; padding: 18px 6px 12px; }
+    .overview .ov-hero .ring { width: 74px; height: 74px; margin: 0 auto 14px; border-radius: 50%; border: 1px solid rgba(34,211,238,.25); display: grid; place-items: center; font-size: 28px; color: #8ff0ff; background: radial-gradient(circle, rgba(34,211,238,.14), transparent 70%); box-shadow: 0 0 30px rgba(34,211,238,.18); }
+    .overview h3 { font-size: 13px; color: #e8edff; font-weight: 600; margin-bottom: 6px; }
+    .ov-step { display: flex; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+    .ov-step b { color: #8ff0ff; font-family: ui-monospace, Consolas, monospace; font-size: 11px; flex-shrink: 0; }
+    .clear-btn { margin-top: 14px; width: 100%; padding: 8px; font-size: 11px; color: #aebbd8; cursor: pointer; border-radius: 10px; background: rgba(255,255,255,.04); border: 1px solid var(--line); font-family: inherit; }
+    .clear-btn:hover { color: #fff; background: rgba(255,255,255,.09); }
+
+    .statusbar { display: flex; justify-content: space-between; flex-shrink: 0; font-size: 10px; color: #63718f; letter-spacing: .5px; padding: 0 6px; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(130,160,255,.22); border-radius: 9px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    @media (max-width: 1180px) { .main { grid-template-columns: 224px minmax(0,1fr); } .panel.right { display: none; } .brand p { max-width: 150px; } }
+    @media (max-width: 820px) { .main { grid-template-columns: 1fr; } .panel.left { display: none; } .topbar { flex-wrap: wrap; } .stats { order: 3; width: 100%; justify-content: center; } }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div><div class="orb orb-a"></div><div class="orb orb-b"></div><div class="scanline"></div>
+
+<div class="app">
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-mark">◈</div>
+            <div><h1>知识星图</h1><p id="subTitle">KNOWLEDGE ATLAS · 知识点关系可视化</p></div>
+        </div>
+        <div class="stats" id="stats"></div>
+        <div class="tools">
+            <button class="tool" id="btnLayout" title="切换星轨 / 自由布局">◇ 布局：<span id="layoutName">星轨</span></button>
+            <button class="tool" id="btnEdge" title="显示或隐藏连线上的关系词">≡ 关系词：开</button>
+            <button class="tool" id="btnPng" title="导出高清图片">↓ 导出 PNG</button>
+            <button class="tool" id="btnRegen" title="清除缓存并回到助手重新生成">↻ 重新生成</button>
+            <a class="tool primary" id="btnBack" href="index.html">← 返回助手</a>
+        </div>
+    </header>
+
+    <main class="main">
+        <aside class="panel left">
+            <div class="panel-head"><span class="dot"></span> 知识点目录 <span class="count" id="dirCount"></span></div>
+            <div class="search-wrap"><input id="searchInput" placeholder="搜索知识点，快速定位…"><span class="search-icon">⌕</span></div>
+            <div class="chips" id="chips"></div>
+            <div class="dir-list" id="dirList"></div>
+            <div class="path-box">
+                <div class="panel-head small"><span class="dot purple"></span> 建议学习路径</div>
+                <ol class="path-list" id="pathList"></ol>
+            </div>
+        </aside>
+
+        <section class="stage" id="stage">
+            <div class="orbit orbit-1"></div><div class="orbit orbit-2"></div>
+            <div class="stage-title"><span class="stage-badge">LIVE MAP</span><span id="stageHint">拖拽平移 · 滚轮缩放 · 点击节点查看详情</span></div>
+            <div class="demo-tip" id="demoTip" hidden>当前为示例星图</div>
+            <div id="chart"></div>
+            <div class="legend" id="legend"></div>
+            <div class="empty" id="emptyState" hidden>
+                <h2>还没有知识图谱数据</h2>
+                <p>回到助手，围绕同一主题多聊几轮后<br>点击左侧「生成知识图谱」即可自动打开这里。</p>
+                <div style="display:flex;gap:10px">
+                    <button class="tool" id="btnDemo">载入示例星图</button>
+                    <a class="tool primary" id="btnBackEmpty" href="index.html">返回助手</a>
+                </div>
+            </div>
+        </section>
+
+        <aside class="panel right">
+            <div class="panel-head"><span class="dot pink"></span> 知识点详情</div>
+            <div class="detail-scroll" id="detail"></div>
+        </aside>
+    </main>
+
+    <footer class="statusbar"><span id="footerSource"></span><span id="footerMeta"></span></footer>
+</div>
+
+<script>
+    const CAT = [
+        { name: '核心概念', light: '#67e8f9', deep: '#0e7490', line: 'rgba(34,211,238,.55)', glow: 'rgba(34,211,238,.65)' },
+        { name: '关联知识点', light: '#c4b5fd', deep: '#6d28d9', line: 'rgba(168,85,247,.5)', glow: 'rgba(168,85,247,.6)' },
+        { name: '易错 / 薄弱点', light: '#fda4af', deep: '#9f1239', line: 'rgba(251,113,133,.5)', glow: 'rgba(251,113,133,.6)' }
+    ];
+    const DEFAULT_CATS = CAT.map(c => ({ name: c.name }));
+    const STORE_KEY = 'graphData_v2';
+
+    const DEMO = {
+        nodes: [
+            { name: '指针', category: 0, value: '存放内存地址的变量，是 C 语言最核心的概念' },
+            { name: '内存地址', category: 0, value: '每个字节在内存中的唯一编号' },
+            { name: '指针变量', category: 1, value: '专门用来保存地址的变量，声明时需指定类型' },
+            { name: '取地址 &', category: 1, value: '用 & 取得一个变量在内存中的地址' },
+            { name: '解引用 *', category: 1, value: '用 * 访问指针所指向地址中存放的值' },
+            { name: '数组', category: 1, value: '连续内存块，数组名多数情况退化为首元素地址' },
+            { name: '指针运算', category: 1, value: '指针加减整数按所指向类型的大小移动' },
+            { name: '函数传参', category: 1, value: '传地址可在函数内修改实参，避免整体拷贝' },
+            { name: 'malloc / free', category: 1, value: '在堆上动态申请与释放内存，必须成对使用' },
+            { name: '结构体指针', category: 1, value: '指向结构体的指针，常用 -> 访问成员' },
+            { name: '野指针', category: 2, value: '指向已释放或未初始化内存的指针，极易引发崩溃' },
+            { name: '内存泄漏', category: 2, value: 'malloc 后忘记 free，内存无法被回收' },
+            { name: '数组越界', category: 2, value: '下标超出范围，会读写到相邻内存而不报错' },
+            { name: 'sizeof 误用', category: 2, value: '对退化为指针的数组名用 sizeof，得到的只是指针大小' }
+        ],
+        links: [
+            { source: '指针', target: '内存地址', value: '指向' },
+            { source: '指针', target: '指针变量', value: '包含' },
+            { source: '指针', target: '取地址 &', value: '需要先掌握' },
+            { source: '指针', target: '解引用 *', value: '需要先掌握' },
+            { source: '指针', target: '数组', value: '关联' },
+            { source: '指针', target: '指针运算', value: '包含' },
+            { source: '指针', target: '函数传参', value: '应用于' },
+            { source: '指针', target: 'malloc / free', value: '应用于' },
+            { source: '指针', target: '结构体指针', value: '延伸' },
+            { source: '内存地址', target: '取地址 &', value: '由此获得' },
+            { source: '内存地址', target: '解引用 *', value: '由此访问' },
+            { source: '指针变量', target: '野指针', value: '易错于' },
+            { source: 'malloc / free', target: '内存泄漏', value: '易错于' },
+            { source: 'malloc / free', target: '野指针', value: '易错于' },
+            { source: '数组', target: '数组越界', value: '易错于' },
+            { source: '数组', target: 'sizeof 误用', value: '易错于' },
+            { source: '数组', target: '指针运算', value: '依赖' },
+            { source: '数组', target: '函数传参', value: '退化为' },
+            { source: '结构体指针', target: '解引用 *', value: '依赖' },
+            { source: '指针运算', target: '数组越界', value: '易错于' }
+        ],
+        categories: DEFAULT_CATS
+    };
+
+    // ================= 数据读取与规范化（防御模型输出不标准） =================
+    function normalize(raw) {
+        if (!raw || !Array.isArray(raw.nodes) || !raw.nodes.length) return null;
+        const cats = (Array.isArray(raw.categories) && raw.categories.length ? raw.categories : DEFAULT_CATS)
+            .slice(0, 3).map((c, i) => ({ name: String((c && c.name) || DEFAULT_CATS[i].name).slice(0, 16) }));
+        while (cats.length < 3) cats.push({ name: DEFAULT_CATS[cats.length].name });
+
+        const seen = new Set();
+        const nodes = raw.nodes.map(n => {
+            if (!n || n.name === undefined || n.name === null) return null;
+            const name = String(n.name).trim().slice(0, 20);
+            if (!name || name === 'null' || name === 'undefined' || seen.has(name)) return null;
+            seen.add(name);
+            let c = parseInt(n.category, 10);
+            if (c !== 0 && c !== 1 && c !== 2) c = 1;
+            return { name, category: c, value: String(n.value || '').trim().slice(0, 90) };
+        }).filter(Boolean);
+        if (!nodes.length) return null;
+
+        const nameSet = new Set(nodes.map(n => n.name));
+        const linkSeen = new Set();
+        const links = (Array.isArray(raw.links) ? raw.links : []).map(l => {
+            if (!l) return null;
+            const s = String(l.source || '').trim(), t = String(l.target || '').trim();
+            if (!nameSet.has(s) || !nameSet.has(t) || s === t) return null;
+            const key = s + '>' + t;
+            if (linkSeen.has(key)) return null;
+            linkSeen.add(key);
+            return { source: s, target: t, value: String(l.value || '关联').trim().slice(0, 12) };
+        }).filter(Boolean).slice(0, 40);
+
+        const deg = {};
+        links.forEach(l => { deg[l.source] = (deg[l.source] || 0) + 1; deg[l.target] = (deg[l.target] || 0) + 1; });
+        nodes.forEach(n => { n.deg = deg[n.name] || 0; });
+        const center = [...nodes].sort((a, b) => b.deg - a.deg || a.category - b.category).find(n => n.category === 0)
+            || [...nodes].sort((a, b) => b.deg - a.deg)[0];
+        nodes.forEach(n => {
+            n.tier = n.name === center.name ? 0 : (n.category === 2 || n.deg === 0 ? 2 : 1);
+        });
+        return { nodes, links, cats, center: center.name };
+    }
+
+    let payload = null;
+    try { payload = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) {}
+    let isDemo = false;
+    let graph = normalize(payload && payload.data);
+    if (!graph) { graph = normalize(DEMO); isDemo = true; }
+    document.getElementById('demoTip').hidden = !isDemo;
+    document.getElementById('subTitle').textContent = isDemo
+        ? 'KNOWLEDGE ATLAS · 示例星图（指针专题）'
+        : (payload.title || 'KNOWLEDGE ATLAS · 本次对话知识点');
+    document.getElementById('footerSource').textContent = isDemo
+        ? '数据来源：内置示例 · 回助手可生成属于你的图谱'
+        : '数据来源：' + (payload.source || '对话生成') + ' · 生成时间 ' + (payload.time || '');
+    document.getElementById('footerMeta').textContent = 'C 语言 AI 小助手 · 知识点关系可视化 · 点击节点可查看解释与关联';
+
+    const weakCount = graph.nodes.filter(n => n.category === 2).length;
+    document.getElementById('stats').innerHTML = [
+        { v: graph.nodes.length, t: '知识点', c: 'c0' },
+        { v: graph.links.length, t: '关联关系', c: 'c1' },
+        { v: weakCount, t: '易错薄弱', c: 'c2' }
+    ].map(s => `<div class="stat ${s.c}"><b>${s.v}</b><span>${s.t}</span></div>`).join('');
+    document.getElementById('legend').innerHTML = CAT.map(c =>
+        `<div class="legend-item"><i style="background:${c.light};box-shadow:0 0 9px ${c.glow}"></i>${c.name}</div>`).join('') +
+        '<div class="legend-item" style="color:#6f7ea3">中心=核心 · 内环=关联 · 外环=易错</div>';
+
+    // ================= 状态 =================
+    let chart = null;
+    let layoutMode = 'radial';
+    let showEdgeLabel = true;
+    let activeCat = null;
+    let searchTerm = '';
+    let focusName = null;
+    const nodeMap = new Map(graph.nodes.map(n => [n.name, n]));
+    const $ = id => document.getElementById(id);
+
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    function computePositions(nodes, W, H) {
+        const cx = W / 2, cy = H / 2;
+        const base = Math.min(W, H);
+        const R1 = Math.max(120, base * 0.25), R2 = Math.max(210, base * 0.41);
+        const pos = {};
+        const center = nodes.find(n => n.tier === 0);
+        if (center) pos[center.name] = [cx, cy];
+        const inner = nodes.filter(n => n.tier === 1), outer = nodes.filter(n => n.tier === 2);
+        inner.forEach((n, i) => {
+            const a = -Math.PI / 2 + i * 2 * Math.PI / Math.max(inner.length, 1);
+            pos[n.name] = [cx + R1 * Math.cos(a), cy + R1 * Math.sin(a) * 0.84];
+        });
+        outer.forEach((n, i) => {
+            const a = -Math.PI / 2 + (i + 0.5) * 2 * Math.PI / Math.max(outer.length, 1);
+            pos[n.name] = [cx + R2 * Math.cos(a), cy + R2 * Math.sin(a) * 0.84];
+        });
+        return pos;
+    }
+
+    function gradient(cat) {
+        const c = CAT[cat];
+        return new echarts.graphic.RadialGradient(0.35, 0.3, 0.95, [
+            { offset: 0, color: c.light }, { offset: 0.55, color: c.deep }, { offset: 1, color: '#0a1024' }
+        ]);
+    }
+
+    function matches(n) {
+        return activeCat === null || n.category === activeCat;
+    }
+    function isHighlighted(n) {
+        if (activeCat !== null && n.category !== activeCat) return false;
+        if (focusName) return n.name === focusName || graph.links.some(l =>
+            (l.source === focusName && l.target === n.name) || (l.target === focusName && l.source === n.name));
+        if (searchTerm) return n.name.toLowerCase().includes(searchTerm) || (n.value || '').toLowerCase().includes(searchTerm);
+        return true;
+    }
+    function edgeActive(s, t) {
+        const a = nodeMap.get(s), b = nodeMap.get(t);
+        if (focusName) return s === focusName || t === focusName;
+        if (activeCat !== null) return (a && a.category === activeCat) || (b && b.category === activeCat);
+        if (searchTerm) {
+            const hit = n => n && (n.name.toLowerCase().includes(searchTerm) || (n.value || '').toLowerCase().includes(searchTerm));
+            return hit(a) || hit(b);
+        }
+        return true;
+    }
+
+    function buildOption() {
+        const stage = $('stage');
+        const W = stage.clientWidth || 900, H = stage.clientHeight || 620;
+        // 保留全部节点和连线，靠透明度聚焦，避免筛选后出现孤立点、丢失知识结构
+        const visibleNodes = graph.nodes;
+        const names = new Set(visibleNodes.map(n => n.name));
+        const visibleLinks = graph.links.filter(l => names.has(l.source) && names.has(l.target));
+        const pos = computePositions(visibleNodes, W, H);
+
+        const data = visibleNodes.map(n => {
+            const dim = !isHighlighted(n) ? 0.16 : 1;
+            const c = CAT[n.category];
+            const size = n.tier === 0 ? 94 : (n.tier === 1 ? 44 + Math.min(n.deg, 6) * 4 : 34);
+            return {
+                name: n.name, category: n.category, value: n.value,
+                x: pos[n.name][0], y: pos[n.name][1], symbolSize: size,
+                itemStyle: {
+                    color: gradient(n.category), opacity: dim,
+                    borderColor: c.light, borderWidth: n.tier === 0 ? 2.5 : 1.5,
+                    shadowBlur: n.tier === 0 ? 34 : 20, shadowColor: c.glow
+                },
+                label: {
+                    show: true, position: n.tier === 0 ? 'inside' : 'right',
+                    formatter: n.tier === 0 ? '{b}' : '{b}',
+                    color: n.tier === 0 ? '#04121e' : '#e8edff',
+                    fontSize: n.tier === 0 ? 15 : 11.5,
+                    fontWeight: n.tier === 0 ? 700 : 400,
+                    opacity: dim,
+                    backgroundColor: n.tier === 0 ? 'transparent' : 'rgba(8,12,28,.72)',
+                    padding: n.tier === 0 ? 0 : [4, 7], borderRadius: 6,
+                    borderColor: 'rgba(255,255,255,.08)', borderWidth: n.tier === 0 ? 0 : 1
+                }
+            };
+        });
+
+        const links = visibleLinks.map(l => {
+            const src = nodeMap.get(l.source);
+            return {
+                source: l.source, target: l.target, value: l.value,
+                lineStyle: { color: CAT[src ? src.category : 1].line, width: 1.6, curveness: 0.2, opacity: edgeActive(l.source, l.target) ? 0.65 : 0.07 },
+                edgeLabel: { show: showEdgeLabel && edgeActive(l.source, l.target) },
+                label: { show: false }
+            };
+        });
+
+        const series = {
+            type: 'graph', name: '知识星图', roam: true, draggable: layoutMode === 'radial',
+            data, links, categories: graph.cats,
+            animationDuration: 850, animationEasing: 'cubicOut',
+            label: { show: true },
+            edgeSymbol: ['none', 'arrow'], edgeSymbolSize: 6,
+            edgeLabel: {
+                show: showEdgeLabel, formatter: p => p.data.value || '关联',
+                color: '#a9bce0', fontSize: 9.5,
+                backgroundColor: 'rgba(7,11,24,.86)', padding: [2, 5], borderRadius: 4
+            },
+            emphasis: { focus: 'adjacency', scale: 1.12, lineStyle: { width: 3, opacity: 1 }, label: { fontWeight: 700 } },
+            blur: { itemStyle: { opacity: 0.14 }, label: { opacity: 0.16 }, lineStyle: { opacity: 0.05 } },
+            lineStyle: { color: '#5b7cc9', opacity: 0.6 }
+        };
+        if (layoutMode === 'radial') series.layout = 'none';
+        else {
+            series.layout = 'force';
+            series.force = { repulsion: 420, edgeLength: [90, 200], gravity: 0.06, friction: 0.6 };
+        }
+
+        return {
+            backgroundColor: 'transparent',
+            tooltip: {
+                trigger: 'item', confine: true,
+                backgroundColor: 'rgba(10,15,34,.94)', borderColor: 'rgba(120,160,255,.3)',
+                textStyle: { color: '#e8edff', fontSize: 12 },
+                formatter: p => {
+                    if (p.dataType === 'edge') return `<b>${esc(p.data.source)}</b> → ${esc(p.data.target)}<br/><span style="color:#8ff0ff">关系：${esc(p.data.value)}</span>`;
+                    const n = nodeMap.get(p.name);
+                    return `<b style="font-size:13px">${esc(p.name)}</b><br/><span style="color:${CAT[n ? n.category : 1].light}">${esc(CAT[n ? n.category : 1].name)}</span><br/><span style="color:#aebbd8">${esc(n && n.value ? n.value : '点击查看详细关联')}</span>`;
+                }
+            },
+            series: [series]
+        };
+    }
+
+    function render() {
+        if (!chart) return;
+        chart.setOption(buildOption(), true);
+    }
+
+    // ================= 目录 / 筛选 / 学习路径 =================
+    function renderChips() {
+        const items = [{ v: null, t: '全部' }].concat(CAT.map((c, i) => ({ v: i, t: c.name })));
+        $('chips').innerHTML = items.map(i =>
+            `<button class="chip ${activeCat === i.v ? 'on' : ''}" data-cat="${i.v === null ? '' : i.v}">${i.t}</button>`).join('');
+        $('chips').querySelectorAll('.chip').forEach(btn => btn.onclick = () => {
+            activeCat = btn.dataset.cat === '' ? null : Number(btn.dataset.cat);
+            focusName = null; renderChips(); renderDir(); render(); renderOverview();
+        });
+    }
+
+    function renderDir() {
+        $('dirCount').textContent = graph.nodes.filter(matches).length + ' / ' + graph.nodes.length;
+        let html = '';
+        CAT.forEach((c, ci) => {
+            const list = graph.nodes.filter(n => n.category === ci && matches(n));
+            if (!list.length) return;
+            html += `<div class="group-title"><i style="background:${c.light};box-shadow:0 0 8px ${c.glow}"></i>${esc(graph.cats[ci].name)} · ${list.length}</div>`;
+            list.sort((a, b) => b.deg - a.deg).forEach(n => {
+                const dim = !isHighlighted(n) ? ' dim' : '';
+                html += `<div class="dir-item ${focusName === n.name ? 'active' : ''}${dim}" data-name="${esc(n.name)}">
+                    <span class="dir-dot" style="background:${c.light};box-shadow:0 0 8px ${c.glow}"></span>
+                    <span class="dir-name">${esc(n.name)}</span>
+                    <span class="dir-deg">${n.deg} 关联</span></div>`;
+            });
+        });
+        $('dirList').innerHTML = html || '<div style="font-size:11px;color:#63718f;padding:18px 4px;line-height:1.8">该分类下暂无知识点</div>';
+        $('dirList').querySelectorAll('.dir-item').forEach(el => el.onclick = () => focusNode(el.dataset.name));
+    }
+
+    function renderPath() {
+        const center = nodeMap.get(graph.center);
+        const inner = graph.nodes.filter(n => n.tier === 1).sort((a, b) => b.deg - a.deg).slice(0, 4);
+        const weak = graph.nodes.filter(n => n.category === 2).slice(0, 3);
+        const steps = [];
+        if (center) steps.push({ name: center.name, label: '先掌握：' + center.name });
+        inner.forEach(n => steps.push({ name: n.name, label: '理解：' + n.name }));
+        weak.forEach(n => steps.push({ name: n.name, label: '重点复盘：' + n.name }));
+        $('pathList').innerHTML = steps.map(s => `<li data-name="${esc(s.name)}"><span>${esc(s.label)}</span></li>`).join('')
+            || '<li><span>暂无足够数据生成路径</span></li>';
+        $('pathList').querySelectorAll('li[data-name]').forEach(el => el.onclick = () => focusNode(el.dataset.name));
+    }
+
+    // ================= 详情面板 =================
+    function renderOverview() {
+        $('detail').innerHTML = `<div class="overview">
+            <div class="ov-hero"><div class="ring">◈</div><h3>如何读这张星图</h3>
+            <div style="color:#8e9bc0;font-size:11px">三层结构，一眼看清知识的骨架</div></div>
+            <div class="ov-step"><b>01</b><div><b style="color:#67e8f9">中心恒星</b>：本轮对话的核心概念，度数最高、关联最多，建议最先掌握。</div></div>
+            <div class="ov-step"><b>02</b><div><b style="color:#c4b5fd">内环轨道</b>：与核心直接相关的知识点，按关联数排列大小。</div></div>
+            <div class="ov-step"><b>03</b><div><b style="color:#fda4af">外环警示星</b>：易错点与薄弱环节，配粉红光晕，复习时优先看。</div></div>
+            <div class="ov-step"><b>04</b><div>连线上的文字是<b style="color:#8ff0ff">关系词</b>（包含 / 依赖 / 易错于），点击任意节点查看完整关联。</div></div>
+            <div style="margin-top:14px;padding:10px 12px;border-radius:11px;background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.18);color:#9fb2d8">
+                共 ${graph.nodes.length} 个知识点、${graph.links.length} 条关系，其中 ${weakCount} 个易错点。左侧「建议学习路径」给出了推荐顺序。</div>
+            <button class="clear-btn" id="clearFocus">清除高亮 / 聚焦</button>
+        </div>`;
+        $('clearFocus').onclick = () => { focusName = null; searchTerm = ''; activeCat = null; $('searchInput').value = ''; renderChips(); renderDir(); render(); renderOverview(); };
+    }
+
+    function renderDetail(name) {
+        const n = nodeMap.get(name);
+        if (!n) return;
+        const c = CAT[n.category];
+        const rels = graph.links.filter(l => l.source === name || l.target === name);
+        const relHtml = rels.map(l => {
+            const other = l.source === name ? l.target : l.source;
+            const arrow = l.source === name ? '→' : '←';
+            return `<li class="rel-item" data-name="${esc(other)}"><span class="rel-arrow">${arrow}</span><span class="rel-word">${esc(l.value)}</span><span class="rel-name">${esc(other)}</span></li>`;
+        }).join('') || '<div style="font-size:11px;color:#63718f;padding:8px 0">暂无关联关系</div>';
+        $('detail').innerHTML = `<div class="detail-card">
+            <span class="badge" style="color:${c.light};background:${c.deep}33;border:1px solid ${c.light}55">${esc(graph.cats[n.category].name)}</span>
+            <h2>${esc(n.name)}</h2>
+            <div class="detail-value">${esc(n.value || '该知识点暂无文字解释，可在助手中就该知识点继续追问。')}</div>
+            <div class="detail-metrics">
+                <div class="metric"><b>${n.deg}</b><span>关联关系</span></div>
+                <div class="metric"><b>${n.tier === 0 ? '核心' : (n.tier === 1 ? '内环' : '外环')}</b><span>星图层级</span></div>
+            </div>
+            <div class="sec-title">关联关系 · ${rels.length}</div>
+            <ul class="rel-list">${relHtml}</ul>
+            ${n.category === 2 ? '<div class="weak-tip">⚠ 该知识点被标记为易错 / 薄弱点，建议回到助手针对性提问，并把相关题目收藏进「我的题库」反复复盘。</div>' : ''}
+            <button class="clear-btn" id="clearFocus">← 返回概览 / 清除聚焦</button>
+        </div>`;
+        $('detail').querySelectorAll('.rel-item').forEach(el => el.onclick = () => focusNode(el.dataset.name));
+        $('clearFocus').onclick = () => { focusName = null; renderDir(); render(); renderOverview(); };
+    }
+
+    function focusNode(name) {
+        focusName = name;
+        renderDir(); render(); renderDetail(name);
+        const idx = chart ? chart.getOption().series[0].data.findIndex(d => d.name === name) : -1;
+        if (chart && idx >= 0) chart.dispatchAction({ type: 'highlight', seriesIndex: 0, dataIndex: idx });
+    }
+
+    // ================= 工具栏 =================
+    $('btnLayout').onclick = function () {
+        layoutMode = layoutMode === 'radial' ? 'force' : 'radial';
+        $('layoutName').textContent = layoutMode === 'radial' ? '星轨' : '自由';
+        $('stageHint').textContent = layoutMode === 'radial' ? '三层星轨 · 拖拽平移 · 点击节点查看详情' : '自由力导向 · 可拖动节点重新排布';
+        render();
+    };
+    $('btnEdge').onclick = function () {
+        showEdgeLabel = !showEdgeLabel;
+        this.textContent = '≡ 关系词：' + (showEdgeLabel ? '开' : '关');
+        render();
+    };
+    $('btnPng').onclick = function () {
+        if (!chart) return;
+        const url = chart.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#080c1c' });
+        const a = document.createElement('a');
+        a.href = url; a.download = 'C语言知识星图_' + new Date().toISOString().slice(0, 10) + '.png';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    };
+    // 图谱在新窗口打开时，原聊天页仍在：优先聚焦回去，避免多开页面、丢失对话
+    function backToAssistant() {
+        if (window.opener && !window.opener.closed) {
+            try {
+                window.opener.focus();
+                window.close();
+                // 若浏览器禁止脚本关闭窗口，兜底跳回主界面
+                setTimeout(() => { window.location.href = 'index.html'; }, 300);
+                return;
+            } catch (e) {}
+        }
+        window.location.href = 'index.html';
+    }
+    $('btnBack').onclick = e => { e.preventDefault(); backToAssistant(); };
+    $('btnBackEmpty').onclick = e => { e.preventDefault(); backToAssistant(); };
+
+    $('btnRegen').onclick = function () {
+        Object.keys(localStorage).filter(k => k.indexOf('graphCache_') === 0 || k === STORE_KEY)
+            .forEach(k => localStorage.removeItem(k));
+        backToAssistant();
+    };
+    $('btnDemo').onclick = function () {
+        localStorage.setItem(STORE_KEY, JSON.stringify({ data: DEMO, title: '示例 · 指针知识星图', time: new Date().toLocaleString(), source: '内置示例' }));
+        window.location.reload();
+    };
+    $('searchInput').oninput = function () {
+        searchTerm = this.value.trim().toLowerCase();
+        focusName = null; renderDir(); render();
+    };
+
+    // ================= 初始化 =================
+    function init() {
+        if (typeof echarts === 'undefined') {
+            $('emptyState').hidden = false;
+            $('emptyState').innerHTML = '<h2>图谱组件加载失败</h2><p>ECharts 未能从 CDN 加载，请检查网络后刷新页面。</p>';
+            return;
+        }
+        chart = echarts.init($('chart'), null, { renderer: 'canvas' });
+        renderChips(); renderDir(); renderPath(); renderOverview(); render();
+        chart.on('click', p => { if (p.dataType === 'node') focusNode(p.name); });
+        chart.getZr().on('click', e => {
+            if (!e.target && focusName) { focusName = null; renderDir(); render(); renderOverview(); }
+        });
+        const ro = new ResizeObserver(() => { chart.resize(); render(); });
+        ro.observe($('stage'));
+    }
+    init();
+</script>
+</body>
+</html>
