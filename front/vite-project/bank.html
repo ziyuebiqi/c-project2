@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的题库 - C语言AI小助手</title>
+<style>
+    /* ================= 全局基础设置 ================= */
+    * {
+        margin: 0; padding: 0; box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft Yahei", sans-serif;
+    }
+    body {
+        background-color: #070b14;
+        background-image:
+            radial-gradient(ellipse 50% 40% at 8% 0%, rgba(124, 58, 237, 0.30), transparent 60%),
+            radial-gradient(ellipse 45% 40% at 95% 15%, rgba(34, 211, 238, 0.12), transparent 60%),
+            radial-gradient(ellipse 45% 45% at 60% 100%, rgba(168, 85, 247, 0.16), transparent 60%),
+            linear-gradient(160deg, #0b1020 0%, #070b14 50%, #0e0a1c 100%);
+        background-attachment: fixed;
+        color: #e5e7eb;
+        min-height: 100vh;
+    }
+
+    /* 科技网格背景 */
+    .bg-grid {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(ellipse 75% 65% at 50% 20%, black 20%, transparent 80%);
+        -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 20%, black 20%, transparent 80%);
+    }
+    .orb { position: fixed; border-radius: 50%; filter: blur(90px); z-index: 0; pointer-events: none; }
+    .orb1 { width: 400px; height: 400px; top: -140px; left: -110px; background: rgba(139, 92, 246, 0.26); }
+    .orb2 { width: 340px; height: 340px; bottom: -120px; right: -90px; background: rgba(34, 211, 238, 0.13); }
+
+    .page { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 26px 28px 70px; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
+
+    /* ================= 顶部悬浮导航 ================= */
+    .nav {
+        position: sticky; top: 18px; z-index: 50;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 13px 14px 13px 20px; margin-bottom: 34px;
+        background: rgba(13, 18, 34, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 999px;
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 0 0 1px rgba(139,92,246,0.1), 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .nav-left { display: flex; align-items: center; gap: 14px; }
+    .nav-logo {
+        font-size: 17px; font-weight: 700; color: #fff; cursor: pointer; letter-spacing: 1px;
+        display: flex; align-items: center; gap: 8px; user-select: none;
+    }
+    .nav-logo .spark {
+        background: linear-gradient(135deg, #22d3ee, #a855f7);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-logo:hover .spark { filter: drop-shadow(0 0 8px rgba(168,85,247,0.8)); }
+    .nav-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+    .nav-crumb { font-size: 12.5px; color: rgba(148, 163, 184, 0.75); letter-spacing: 2px; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .count-pill {
+        font-size: 13px; color: #fff; padding: 7px 16px; border-radius: 999px;
+        background: linear-gradient(135deg, rgba(34,211,238,0.18), rgba(139,92,246,0.28));
+        border: 1px solid rgba(139, 92, 246, 0.4);
+        box-shadow: 0 0 16px rgba(139, 92, 246, 0.25);
+    }
+    .count-pill b { font-size: 15px; }
+    .btn-back {
+        font-size: 13.5px; color: #cbd5e1; cursor: pointer; padding: 8px 18px;
+        background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 999px; transition: all .25s; user-select: none;
+    }
+    .btn-back:hover { color: #fff; background: rgba(255,255,255,0.12); box-shadow: 0 0 14px rgba(34,211,238,0.2); }
+
+    /* ================= 标题区 ================= */
+    .hero-head { margin-bottom: 28px; padding: 0 6px; }
+    .hero-head .eyebrow {
+        display: inline-block; font-size: 11px; letter-spacing: 4px; font-weight: 600;
+        color: #7dd3fc; padding: 5px 14px; border-radius: 999px; margin-bottom: 14px;
+        background: rgba(34, 211, 238, 0.1); border: 1px solid rgba(34, 211, 238, 0.3);
+    }
+    .hero-head h1 {
+        font-size: 38px; font-weight: 700; letter-spacing: 1px; line-height: 1.2;
+        background: linear-gradient(120deg, #ffffff 35%, #a855f7 70%, #22d3ee 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-head p { margin-top: 10px; font-size: 14px; color: rgba(148, 163, 184, 0.8); letter-spacing: .5px; }
+
+    /* ================= 数据统计舱 ================= */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 26px; }
+    .stat-tile {
+        position: relative; overflow: hidden;
+        border-radius: 20px; padding: 22px 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+        transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .stat-tile:hover { transform: translateY(-4px); }
+    .stat-tile.s1:hover { box-shadow: 0 18px 44px rgba(0,0,0,0.45), 0 0 34px rgba(34,211,238,0.18); }
+    .stat-tile.s2:hover { box-shadow: 0 18px 44px rgba(0,0,0,0.45), 0 0 34px rgba(139,92,246,0.2); }
+    .stat-tile.s3:hover { box-shadow: 0 18px 44px rgba(0,0,0,0.45), 0 0 34px rgba(244,114,182,0.18); }
+    .stat-tile .stat-label { font-size: 12px; color: rgba(148,163,184,0.75); letter-spacing: 2px; margin-bottom: 10px; }
+    .stat-tile .stat-value { font-size: 32px; font-weight: 800; line-height: 1; }
+    .stat-tile .stat-sub { font-size: 12px; color: rgba(148,163,184,0.6); margin-top: 8px; }
+    .s1 .stat-value { color: #22d3ee; text-shadow: 0 0 22px rgba(34,211,238,0.5); }
+    .s2 .stat-value { color: #a855f7; text-shadow: 0 0 22px rgba(168,85,247,0.5); }
+    .s3 .stat-value { color: #f472b6; text-shadow: 0 0 22px rgba(244,114,182,0.45); font-size: 16px !important; padding-top: 8px; }
+    .stat-tile::after {
+        content: ""; position: absolute; right: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,0.06), transparent 70%);
+    }
+
+    /* ================= 工具条：搜索 + 筛选 ================= */
+    .toolbar { margin-bottom: 22px; display: flex; flex-direction: column; gap: 14px; }
+    .search-box {
+        display: flex; align-items: center; gap: 12px;
+        max-width: 520px; padding: 13px 20px; border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 8px 28px rgba(0,0,0,0.3);
+        transition: border-color .25s, box-shadow .25s;
+    }
+    .search-box:focus-within {
+        border-color: rgba(34, 211, 238, 0.55);
+        box-shadow: 0 0 22px rgba(34, 211, 238, 0.18), 0 8px 28px rgba(0,0,0,0.3);
+    }
+    .search-box svg { flex-shrink: 0; opacity: .6; }
+    #searchInput {
+        flex: 1; border: none; outline: none; background: transparent;
+        font-size: 14.5px; color: #f1f5f9;
+    }
+    #searchInput::placeholder { color: rgba(148, 163, 184, 0.55); }
+    .chip-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .topic-chip {
+        font-size: 12.5px; padding: 7px 16px; border-radius: 999px; cursor: pointer; user-select: none;
+        color: rgba(203, 213, 225, 0.8);
+        background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.1);
+        transition: all .22s;
+    }
+    .topic-chip:hover { color: #fff; background: rgba(255,255,255,0.1); }
+    .topic-chip.active {
+        color: #fff; font-weight: 600;
+        background: linear-gradient(135deg, rgba(34,211,238,0.85), rgba(139,92,246,0.85));
+        border-color: rgba(255,255,255,0.2);
+        box-shadow: 0 0 16px rgba(34,211,238,0.35), 0 0 30px rgba(139,92,246,0.25);
+    }
+
+    /* ================= 题目卡片 ================= */
+    .bank-list { display: flex; flex-direction: column; gap: 20px; }
+
+    .bank-card {
+        position: relative;
+        border-radius: 22px; padding: 24px 28px 24px 32px;
+        background: rgba(255, 255, 255, 0.045);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+        transition: transform .3s cubic-bezier(.22,1,.36,1), box-shadow .3s ease, border-color .3s ease;
+        animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .bank-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(255, 255, 255, 0.16);
+        box-shadow: 0 22px 50px rgba(0,0,0,0.45), 0 0 30px var(--accent-glow);
+    }
+    /* 左侧霓虹能量条 */
+    .bank-card::before {
+        content: ""; position: absolute; left: 0; top: 22px; bottom: 22px; width: 3px; border-radius: 3px;
+        background: var(--accent); box-shadow: 0 0 12px var(--accent), 0 0 26px var(--accent-glow);
+    }
+
+    .bank-card-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 14px; padding-bottom: 12px;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.13);
+    }
+    .bank-card-meta { font-size: 12.5px; color: rgba(148,163,184,0.8); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .q-index {
+        font-size: 13px; font-weight: 800; letter-spacing: 2px;
+        font-family: Consolas, monospace;
+    }
+    .knowledge-tag {
+        font-size: 12px; padding: 4px 12px; border-radius: 999px;
+        border: 1px solid var(--accent-border);
+        background: var(--accent-bg); color: var(--accent-text);
+    }
+    .btn-delete {
+        background: transparent; border: 1px solid transparent;
+        color: rgba(248, 113, 113, 0.85); cursor: pointer; font-size: 12.5px;
+        display: flex; align-items: center; gap: 5px;
+        padding: 6px 12px; border-radius: 999px; transition: all .2s;
+    }
+    .btn-delete:hover {
+        background: rgba(248, 113, 113, 0.12); border-color: rgba(248, 113, 113, 0.35);
+        box-shadow: 0 0 14px rgba(248, 113, 113, 0.2);
+    }
+
+    /* Markdown 内容样式 */
+    .bank-card-body { font-size: 14.5px; line-height: 1.8; color: #e5e7eb; }
+    .bank-card-body pre {
+        background: #0d1117; border: 1px solid rgba(255,255,255,0.08);
+        color: #abb2bf; padding: 16px; border-radius: 12px;
+        overflow-x: auto; margin: 12px 0; font-size: 14px;
+    }
+    .bank-card-body code {
+        font-family: Consolas, monospace;
+        background: rgba(34, 211, 238, 0.12); color: #7dd3fc;
+        padding: 2px 6px; border-radius: 5px;
+    }
+    .bank-card-body pre code { background: none; padding: 0; color: inherit; }
+    .bank-card-body table { border-collapse: collapse; margin: 10px 0; }
+    .bank-card-body th, .bank-card-body td { border: 1px solid rgba(255,255,255,0.15); padding: 6px 12px; }
+    .bank-card-body blockquote {
+        border-left: 3px solid rgba(34, 211, 238, 0.5);
+        padding-left: 12px; margin: 8px 0; color: rgba(203, 213, 225, 0.8);
+    }
+    .bank-card-body h1, .bank-card-body h2, .bank-card-body h3 { margin: 10px 0 8px; color: #fff; }
+    .bank-card-body strong { color: #fff; }
+
+    /* ================= 空状态 ================= */
+    .empty-state {
+        text-align: center; color: rgba(148, 163, 184, 0.7);
+        padding: 80px 20px 40px;
+    }
+    .empty-ring {
+        width: 110px; height: 110px; margin: 0 auto 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 44px;
+        background: rgba(139, 92, 246, 0.08);
+        border: 1px dashed rgba(139, 92, 246, 0.45);
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.18), inset 0 0 24px rgba(139, 92, 246, 0.1);
+        animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 30px rgba(139,92,246,0.18), inset 0 0 24px rgba(139,92,246,0.1); }
+        50% { box-shadow: 0 0 55px rgba(139,92,246,0.35), inset 0 0 30px rgba(139,92,246,0.18); }
+    }
+    .empty-state h3 { font-size: 19px; color: #fff; margin-bottom: 10px; letter-spacing: 1px; }
+    .empty-state p { font-size: 13.5px; line-height: 1.9; }
+    .empty-state .btn-go {
+        display: inline-block; margin-top: 22px; text-decoration: none;
+        font-size: 14px; font-weight: 600; color: #06121f;
+        padding: 11px 30px; border-radius: 999px;
+        background: linear-gradient(135deg, #22d3ee, #8b5cf6);
+        box-shadow: 0 0 22px rgba(34, 211, 238, 0.4), 0 0 40px rgba(139, 92, 246, 0.3);
+        transition: all .25s;
+    }
+    .empty-state .btn-go:hover { transform: translateY(-2px); filter: brightness(1.12); }
+
+    .no-match { text-align: center; color: rgba(148,163,184,0.6); padding: 60px 0; font-size: 14px; }
+
+    @media (max-width: 720px) {
+        .stats-row { grid-template-columns: 1fr; }
+        .hero-head h1 { font-size: 30px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="page">
+
+    <!-- 顶部悬浮导航 -->
+    <header class="nav">
+        <div class="nav-left">
+            <div class="nav-logo" onclick="window.location.href='index.html'">
+                <span class="spark">✦</span> C语言 AI 助手
+            </div>
+            <div class="nav-divider"></div>
+            <span class="nav-crumb">MY VAULT · 错题舱</span>
+        </div>
+        <div class="nav-right">
+            <span class="count-pill">已收录 <b id="kbBadge">0</b> 题</span>
+            <button class="btn-back" onclick="window.location.href='index.html'">⬅ 返回对话</button>
+        </div>
+    </header>
+
+    <!-- 标题区 -->
+    <section class="hero-head">
+        <span class="eyebrow">QUESTION VAULT</span>
+        <h1>我的专属题库</h1>
+        <p>收藏的重点题目与 AI 生成习题都在这里 · 掌握后可删除，实现错题管理与反复复盘</p>
+    </section>
+
+    <!-- 数据统计舱 -->
+    <section class="stats-row">
+        <div class="stat-tile s1">
+            <div class="stat-label">已收录题目</div>
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-sub">每一道都是你的成长刻度</div>
+        </div>
+        <div class="stat-tile s2">
+            <div class="stat-label">覆盖知识点</div>
+            <div class="stat-value" id="statTopics">0</div>
+            <div class="stat-sub">按主题分类，精准复盘</div>
+        </div>
+        <div class="stat-tile s3">
+            <div class="stat-label">最近收录</div>
+            <div class="stat-value" id="statLatest">暂无记录</div>
+            <div class="stat-sub">保持节奏，持续积累</div>
+        </div>
+    </section>
+
+    <!-- 工具条 -->
+    <section class="toolbar">
+        <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" placeholder="搜索题目内容或知识点关键词...">
+        </div>
+        <div class="chip-row" id="topicChips"><!-- 知识点筛选由 JS 动态生成 --></div>
+    </section>
+
+    <!-- 题目列表 -->
+    <main class="bank-list" id="bankList">
+        <!-- 内容由 JS 动态渲染 -->
+    </main>
+
+</div>
+
+<script>
+    // ================= 读取本地存储（保持原逻辑） =================
+    let questionBank = JSON.parse(localStorage.getItem('myQuestionBank')) || [];
+    const bankList = document.getElementById('bankList');
+    const kbBadge = document.getElementById('kbBadge');
+    const searchInput = document.getElementById('searchInput');
+    const topicChips = document.getElementById('topicChips');
+
+    let keyword = '';
+    let activeTopic = '全部';
+
+    // ================= 霓虹配色池（按知识点轮换） =================
+    const ACCENTS = [
+        { line:'#22d3ee', glow:'rgba(34,211,238,0.28)',  bg:'rgba(34,211,238,0.10)',  border:'rgba(34,211,238,0.35)',  text:'#7dd3fc' },
+        { line:'#a855f7', glow:'rgba(168,85,247,0.28)', bg:'rgba(139,92,246,0.12)',  border:'rgba(139,92,246,0.4)',  text:'#c4b5fd' },
+        { line:'#f472b6', glow:'rgba(244,114,182,0.26)', bg:'rgba(244,114,182,0.10)', border:'rgba(244,114,182,0.35)', text:'#f9a8d4' },
+        { line:'#60a5fa', glow:'rgba(96,165,250,0.26)',  bg:'rgba(96,165,250,0.10)',  border:'rgba(96,165,250,0.35)',  text:'#93c5fd' },
+        { line:'#34d399', glow:'rgba(52,211,153,0.24)',  bg:'rgba(52,211,153,0.10)',  border:'rgba(52,211,153,0.35)',  text:'#6ee7b7' }
+    ];
+    function accentFor(topic) {
+        let hash = 0;
+        for (let i = 0; i < topic.length; i++) hash = (hash * 31 + topic.charCodeAt(i)) >>> 0;
+        return ACCENTS[hash % ACCENTS.length];
+    }
+
+    // ================= 统计 & 徽章 =================
+    function updateStats() {
+        kbBadge.textContent = questionBank.length;
+        kbBadge.parentElement.style.display = questionBank.length > 0 ? '' : 'none';
+
+        document.getElementById('statTotal').textContent = questionBank.length;
+        const topics = [...new Set(questionBank.map(q => q.topic))];
+        document.getElementById('statTopics').textContent = topics.length;
+        document.getElementById('statLatest').textContent = questionBank.length
+            ? questionBank[questionBank.length - 1].time
+            : '暂无记录';
+    }
+
+    // ================= 知识点筛选 =================
+    function renderChips() {
+        const topics = [...new Set(questionBank.map(q => q.topic))];
+        topicChips.innerHTML = '';
+        const all = document.createElement('span');
+        all.className = 'topic-chip' + (activeTopic === '全部' ? ' active' : '');
+        all.textContent = `全部 (${questionBank.length})`;
+        all.onclick = () => { activeTopic = '全部'; renderChips(); renderBank(); };
+        topicChips.appendChild(all);
+        topics.forEach(t => {
+            const chip = document.createElement('span');
+            const cnt = questionBank.filter(q => q.topic === t).length;
+            chip.className = 'topic-chip' + (activeTopic === t ? ' active' : '');
+            chip.textContent = `${t} (${cnt})`;
+            chip.onclick = () => { activeTopic = t; renderChips(); renderBank(); };
+            topicChips.appendChild(chip);
+        });
+    }
+
+    // ================= 渲染题库 =================
+    function renderBank() {
+        // 关键词 + 知识点双重过滤
+        const filtered = [...questionBank].reverse().filter(q => {
+            const matchTopic = activeTopic === '全部' || q.topic === activeTopic;
+            const plain = (q.content || '').replace(/<[^>]+>/g, '');
+            const matchKeyword = !keyword || q.topic.includes(keyword) || plain.includes(keyword);
+            return matchTopic && matchKeyword;
+        });
+
+        if (questionBank.length === 0) {
+            bankList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-ring">📭</div>
+                    <h3>题库还是空的</h3>
+                    <p>回到对话页面，让 AI 生成专属题目，或在问答中点击「加入题库」<br>收藏的重点题目都会存放在这个舱室里。</p>
+                    <a class="btn-go" href="index.html">去收藏第一道题 →</a>
+                </div>
+            `;
+            return;
+        }
+
+        if (filtered.length === 0) {
+            bankList.innerHTML = `<div class="no-match">🔭 没有匹配的题目，换个关键词或知识点试试</div>`;
+            return;
+        }
+
+        bankList.innerHTML = '';
+        filtered.forEach((q, idx) => {
+            const a = accentFor(q.topic || 'default');
+            const card = document.createElement('div');
+            card.className = 'bank-card';
+            card.style.animationDelay = Math.min(idx * 0.06, 0.4) + 's';
+            card.style.setProperty('--accent', a.line);
+            card.style.setProperty('--accent-glow', a.glow);
+            card.style.setProperty('--accent-bg', a.bg);
+            card.style.setProperty('--accent-border', a.border);
+            card.style.setProperty('--accent-text', a.text);
+
+            card.innerHTML = `
+                <div class="bank-card-header">
+                    <div class="bank-card-meta">
+                        <span class="q-index" style="color:${a.text};">#${String(idx + 1).padStart(3, '0')}</span>
+                        <span>收录时间：${q.time}</span>
+                        <span class="knowledge-tag">${q.topic}</span>
+                    </div>
+                    <button class="btn-delete" onclick="deleteQuestion('${q.id}')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        掌握了，删除
+                    </button>
+                </div>
+                <div class="bank-card-body">
+                    ${q.content}
+                </div>
+            `;
+            bankList.appendChild(card);
+        });
+    }
+
+    // ================= 删除题目功能（保持原逻辑） =================
+    window.deleteQuestion = function(id) {
+        if (!confirm('确定要从题库中删除这道题吗？')) return;
+
+        questionBank = questionBank.filter(q => q.id !== id);
+        localStorage.setItem('myQuestionBank', JSON.stringify(questionBank));
+
+        updateStats();
+        renderChips();
+        renderBank();
+    };
+
+    // ================= 搜索 =================
+    searchInput.oninput = function() {
+        keyword = this.value.trim();
+        renderBank();
+    };
+
+    // ================= 页面加载时渲染 =================
+    updateStats();
+    renderChips();
+    renderBank();
+</script>
+</body>
+</html>
