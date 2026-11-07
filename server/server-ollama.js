@@ -114,13 +114,26 @@ function stripThink(s) {
 }
 
 app.post('/api/ollama', async (req, res) => {
-    const { message, pdfText, stream, kbEnabled, task } = req.body;
+    const { message, pdfText, stream, kbEnabled, task, history } = req.body;
 
     if (!message) return res.status(400).json({ error: '请求参数缺失，请提供 message' });
 
     // 图谱抽取是「结构化数据转换」任务，不需要模型长篇推理。
     // 前端传 task:'graph' 时走专用参数：约束解码 + 关闭思考 + 限制输出长度，显著提速且保证 JSON 合法。
     const isGraphTask = task === 'graph';
+    // 题库批改同样是结构化任务：只要一段判定 JSON，不需要思考过程
+    const isGradeTask = task === 'grade';
+    const isStructuredTask = isGraphTask || isGradeTask;
+
+    // ================= 多轮上下文 =================
+    // 前端把当前会话最近 6 轮（12 条）传过来，这里做白名单过滤后拼进 messages。
+    // 结构化任务（图谱 / 批改）刻意忽略上下文，保持输入精简、输出稳定。
+    const historyMsgs = (!isStructuredTask && Array.isArray(history))
+        ? history
+            .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
+            .slice(-12)
+            .map(m => ({ role: m.role, content: m.content.slice(0, 2000) }))
+        : [];
 
     // 注意：不要在提示词里写"禁止输出思考过程"之类的指令——
     // 小模型会把自己的推理过程当成正文输出。正确做法是让模型正常思考，
@@ -147,16 +160,21 @@ app.post('/api/ollama', async (req, res) => {
         model: OLLAMA_MODEL,
         messages: [
             { role: 'system', content: systemContent },
+            ...historyMsgs,
             { role: 'user', content: message }
         ],
         stream: !!stream,
-        think: isGraphTask ? false : true,  // 普通问答显式开启思考（只转发正文 content）；图谱抽取关闭思考以提速
+        think: isStructuredTask ? false : true,  // 普通问答显式开启思考（只转发正文 content）；结构化任务关闭思考以提速
         keep_alive: '30m'      // 提速：模型常驻显存/内存 30 分钟，避免每次请求都重新加载模型
     };
 
     if (isGraphTask) {
         ollamaBody.format = 'json';   // Ollama 约束解码，从根上杜绝「模型输出解释文字 / 思考过程导致解析失败」
         ollamaBody.options = { temperature: 0, num_predict: 2000 };
+    }
+    if (isGradeTask) {
+        ollamaBody.format = 'json';
+        ollamaBody.options = { temperature: 0, num_predict: 500 };
     }
 
     try {
