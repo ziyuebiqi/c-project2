@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习驾驶舱 - C语言AI小助手</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft Yahei", sans-serif; }
+    :root {
+        --panel: rgba(255, 255, 255, 0.045);
+        --line: rgba(255, 255, 255, 0.09);
+        --txt: #e5e7eb;
+        --muted: rgba(148, 163, 184, 0.72);
+        --cyan: #22d3ee;
+        --purple: #a855f7;
+        --pink: #f472b6;
+        --green: #34d399;
+        --amber: #fb923c;
+    }
+    body {
+        background-color: #070b14;
+        background-image:
+            radial-gradient(ellipse 46% 38% at 6% 0%, rgba(124, 58, 237, .32), transparent 62%),
+            radial-gradient(ellipse 42% 38% at 96% 12%, rgba(34, 211, 238, .14), transparent 62%),
+            radial-gradient(ellipse 48% 44% at 58% 100%, rgba(168, 85, 247, .16), transparent 62%),
+            linear-gradient(160deg, #0b1020 0%, #070b14 52%, #0e0a1c 100%);
+        background-attachment: fixed;
+        color: var(--txt); min-height: 100vh;
+    }
+    .bg-grid {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background-image:
+            linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,.028) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(ellipse 78% 70% at 50% 18%, black 20%, transparent 82%);
+        -webkit-mask-image: radial-gradient(ellipse 78% 70% at 50% 18%, black 20%, transparent 82%);
+    }
+    .orb { position: fixed; border-radius: 50%; filter: blur(90px); z-index: 0; pointer-events: none; }
+    .orb1 { width: 420px; height: 420px; top: -160px; left: -120px; background: rgba(139,92,246,.25); }
+    .orb2 { width: 360px; height: 360px; bottom: -140px; right: -100px; background: rgba(34,211,238,.12); }
+
+    .page { position: relative; z-index: 1; max-width: 1220px; margin: 0 auto; padding: 26px 28px 70px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 6px; }
+
+    /* ================= 悬浮导航 ================= */
+    .nav {
+        position: sticky; top: 18px; z-index: 50;
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 12px 14px 12px 20px; margin-bottom: 30px;
+        background: rgba(13,18,34,.62); border: 1px solid rgba(255,255,255,.09);
+        border-radius: 999px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 0 0 1px rgba(139,92,246,.1), 0 12px 40px rgba(0,0,0,.45);
+    }
+    .nav-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+    .nav-logo { font-size: 17px; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .nav-logo .spark { background: linear-gradient(135deg, #22d3ee, #a855f7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-divider { width: 1px; height: 20px; background: rgba(255,255,255,.12); }
+    .nav-crumb { font-size: 11.5px; color: var(--muted); letter-spacing: 2px; white-space: nowrap; }
+    .nav-right { display: flex; align-items: center; gap: 9px; }
+    .btn {
+        font-size: 12.5px; color: #cbd5e1; cursor: pointer; padding: 8px 16px; white-space: nowrap;
+        background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.13);
+        border-radius: 999px; transition: all .25s; text-decoration: none;
+    }
+    .btn:hover { color: #fff; background: rgba(255,255,255,.12); box-shadow: 0 0 14px rgba(34,211,238,.2); }
+    .btn.primary { color: #06121f; font-weight: 600; border: none; background: linear-gradient(135deg, #22d3ee, #a855f7); box-shadow: 0 0 18px rgba(139,92,246,.35); }
+    .btn.primary:hover { filter: brightness(1.12); }
+
+    /* ================= 标题 ================= */
+    .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 24px; padding: 0 6px; flex-wrap: wrap; }
+    .eyebrow { display: inline-block; font-size: 10.5px; letter-spacing: 4px; color: #7dd3fc; padding: 5px 14px; border-radius: 999px; margin-bottom: 12px; background: rgba(34,211,238,.1); border: 1px solid rgba(34,211,238,.3); }
+    .hero h1 { font-size: 38px; letter-spacing: 1px; line-height: 1.2; background: linear-gradient(120deg, #fff 32%, #a855f7 68%, #22d3ee 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { margin-top: 9px; font-size: 13.5px; color: var(--muted); }
+    .hero-date { font-size: 12px; color: var(--muted); font-family: Consolas, monospace; letter-spacing: 1px; padding-bottom: 4px; }
+
+    /* ================= KPI ================= */
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    .kpi {
+        position: relative; overflow: hidden; border-radius: 20px; padding: 20px 22px;
+        background: var(--panel); border: 1px solid var(--line);
+        backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 12px 36px rgba(0,0,0,.35); transition: transform .3s, box-shadow .3s;
+    }
+    .kpi:hover { transform: translateY(-4px); box-shadow: 0 20px 46px rgba(0,0,0,.45); }
+    .kpi .label { font-size: 11.5px; color: var(--muted); letter-spacing: 2px; margin-bottom: 10px; }
+    .kpi .value { font-size: 34px; font-weight: 800; line-height: 1; font-family: Consolas, monospace; }
+    .kpi .unit { font-size: 14px; font-weight: 400; margin-left: 4px; opacity: .7; }
+    .kpi .sub { font-size: 11.5px; color: var(--muted); margin-top: 9px; }
+    .kpi::after { content: ""; position: absolute; right: -30px; top: -30px; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.06), transparent 70%); }
+    .k1 .value { color: var(--cyan); text-shadow: 0 0 22px rgba(34,211,238,.5); }
+    .k2 .value { color: var(--purple); text-shadow: 0 0 22px rgba(168,85,247,.5); }
+    .k3 .value { color: var(--green); text-shadow: 0 0 22px rgba(52,211,153,.45); }
+    .k4 .value { color: var(--amber); text-shadow: 0 0 22px rgba(251,146,60,.45); }
+
+    /* ================= 面板网格 ================= */
+    .grid-main { display: grid; grid-template-columns: 1.32fr 1fr; gap: 18px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 18px; }
+    .panel {
+        border-radius: 22px; padding: 22px 24px;
+        background: var(--panel); border: 1px solid var(--line);
+        backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 14px 40px rgba(0,0,0,.35);
+    }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+    .panel-head h2 { font-size: 15px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 9px; }
+    .panel-head h2::before { content: ""; width: 3px; height: 15px; border-radius: 3px; background: linear-gradient(180deg, var(--cyan), var(--purple)); box-shadow: 0 0 10px rgba(34,211,238,.6); }
+    .panel-head .hint { font-size: 11.5px; color: var(--muted); }
+    .panel-head .pill { font-size: 11px; padding: 4px 11px; border-radius: 999px; background: rgba(139,92,246,.14); border: 1px solid rgba(139,92,246,.35); color: #c4b5fd; }
+
+    /* ================= 热力图 ================= */
+    .heat-scroll { overflow-x: auto; padding-bottom: 4px; }
+    .heat-wrap { display: flex; gap: 10px; min-width: max-content; }
+    .heat-dow { display: grid; grid-template-rows: repeat(7, 14px); gap: 5px; padding-top: 18px; }
+    .heat-dow span { font-size: 10px; line-height: 14px; color: var(--muted); }
+    .heat-cols { display: flex; gap: 5px; }
+    .heat-col { display: grid; grid-template-rows: repeat(7, 14px); gap: 5px; }
+    .heat-month { font-size: 10px; color: var(--muted); height: 18px; line-height: 18px; }
+    .heat-cell { width: 14px; height: 14px; border-radius: 4px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.045); transition: transform .15s; }
+    .heat-cell:hover { transform: scale(1.35); border-color: rgba(255,255,255,.4); }
+    .heat-cell.l1 { background: rgba(34,211,238,.32); }
+    .heat-cell.l2 { background: rgba(139,92,246,.62); }
+    .heat-cell.l3 { background: linear-gradient(135deg, #22d3ee, #a855f7); box-shadow: 0 0 9px rgba(168,85,247,.55); }
+    .heat-cell.today { outline: 1.5px solid rgba(251,146,60,.9); outline-offset: 1px; }
+    .heat-cell.future { opacity: .2; }
+    .heat-legend { display: flex; align-items: center; gap: 6px; justify-content: flex-end; margin-top: 14px; font-size: 11px; color: var(--muted); }
+    .heat-legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+    /* ================= 趋势图 ================= */
+    #trendSvg { width: 100%; height: 190px; display: block; }
+    .trend-foot { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11.5px; color: var(--muted); }
+
+    /* ================= 知识点分布 ================= */
+    .topic-row { display: flex; align-items: center; gap: 12px; margin-bottom: 13px; }
+    .topic-row:last-child { margin-bottom: 0; }
+    .topic-name { width: 108px; flex: none; font-size: 12.5px; color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .topic-track { flex: 1; height: 9px; border-radius: 999px; background: rgba(255,255,255,.06); overflow: hidden; }
+    .topic-fill { height: 100%; border-radius: 999px; transition: width .8s cubic-bezier(.22,1,.36,1); }
+    .topic-num { width: 76px; flex: none; text-align: right; font-size: 11.5px; color: var(--muted); font-family: Consolas, monospace; }
+
+    /* ================= 列表 ================= */
+    .queue-list, .weak-list { display: flex; flex-direction: column; gap: 9px; }
+    .queue-item, .weak-item {
+        display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-radius: 13px;
+        background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.07); transition: all .2s;
+    }
+    .queue-item:hover, .weak-item:hover { background: rgba(255,255,255,.07); border-color: rgba(139,92,246,.35); transform: translateX(3px); }
+    .q-rank { width: 24px; height: 24px; flex: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-family: Consolas, monospace; font-weight: 700; background: rgba(139,92,246,.16); color: #c4b5fd; }
+    .q-main { flex: 1; min-width: 0; }
+    .q-title { font-size: 13px; color: #e5e7eb; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .q-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .q-tag { flex: none; font-size: 10.5px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+    .tag-due { background: rgba(251,146,60,.13); border: 1px solid rgba(251,146,60,.4); color: #fdba74; }
+    .tag-new { background: rgba(148,163,184,.1); border: 1px solid rgba(148,163,184,.3); color: #cbd5e1; }
+    .tag-bad { background: rgba(248,113,113,.12); border: 1px solid rgba(248,113,113,.38); color: #fca5a5; }
+    .weak-item .q-rank { background: rgba(248,113,113,.14); color: #fca5a5; }
+    .weak-bar { width: 62px; height: 6px; flex: none; border-radius: 999px; background: rgba(255,255,255,.07); overflow: hidden; }
+    .weak-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #fb923c, #f43f5e); }
+
+    .empty-mini { text-align: center; padding: 30px 10px; font-size: 12.5px; color: var(--muted); line-height: 1.9; }
+    .empty-mini a { color: #7dd3fc; text-decoration: none; }
+    .empty-mini a:hover { text-decoration: underline; }
+
+    .footer-note { margin-top: 22px; text-align: center; font-size: 11.5px; color: rgba(148,163,184,.5); line-height: 1.9; }
+
+    @media (max-width: 980px) {
+        .grid-main { grid-template-columns: 1fr; }
+        .kpi-row { grid-template-columns: repeat(2, 1fr); }
+        .hero h1 { font-size: 30px; }
+        .nav-crumb { display: none; }
+    }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="page">
+
+    <header class="nav">
+        <div class="nav-left">
+            <div class="nav-logo" onclick="window.location.href='index.html'"><span class="spark">✦</span> C语言 AI 助手</div>
+            <div class="nav-divider"></div>
+            <span class="nav-crumb">LEARNING COCKPIT · 学习驾驶舱</span>
+        </div>
+        <div class="nav-right">
+            <button class="btn" id="btnRefresh">↻ 刷新</button>
+            <button class="btn" id="btnExport">⬇ 导出简报</button>
+            <a class="btn primary" href="bank.html">去练习 →</a>
+            <a class="btn" href="index.html">⬅ 返回助手</a>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div>
+            <span class="eyebrow">LEARNING ANALYTICS</span>
+            <h1>学习驾驶舱</h1>
+            <p>把提问、练习与错题连成一条可追踪的学习曲线 · 数据全部来自本机浏览器，不上传云端</p>
+        </div>
+        <div class="hero-date" id="heroDate"></div>
+    </section>
+
+    <section class="kpi-row">
+        <div class="kpi k1">
+            <div class="label">累计提问</div>
+            <div class="value" id="kpiQuestions">0<span class="unit">次</span></div>
+            <div class="sub" id="kpiQuestionsSub">近 7 天问答记录</div>
+        </div>
+        <div class="kpi k2">
+            <div class="label">活跃天数</div>
+            <div class="value" id="kpiActive">0<span class="unit">天</span></div>
+            <div class="sub">近 8 周有学习行为</div>
+        </div>
+        <div class="kpi k3">
+            <div class="label">练习正确率</div>
+            <div class="value" id="kpiAccuracy">—</div>
+            <div class="sub" id="kpiAccuracySub">还没有练习记录</div>
+        </div>
+        <div class="kpi k4">
+            <div class="label">今日待复习</div>
+            <div class="value" id="kpiDue">0<span class="unit">题</span></div>
+            <div class="sub">按艾宾浩斯遗忘曲线排期</div>
+        </div>
+    </section>
+
+    <div class="grid-main">
+        <div class="col">
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>学习热力图</h2>
+                    <span class="hint">近 8 周 · 每格一天</span>
+                </div>
+                <div class="heat-scroll"><div class="heat-wrap" id="heatWrap"></div></div>
+                <div class="heat-legend">
+                    <span>少</span>
+                    <i style="background:rgba(255,255,255,.05)"></i>
+                    <i style="background:rgba(34,211,238,.32)"></i>
+                    <i style="background:rgba(139,92,246,.62)"></i>
+                    <i style="background:linear-gradient(135deg,#22d3ee,#a855f7)"></i>
+                    <span>多</span>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>近 7 日提问趋势</h2>
+                    <span class="pill" id="trendTotal">共 0 次</span>
+                </div>
+                <svg id="trendSvg" viewBox="0 0 620 190" preserveAspectRatio="none"></svg>
+                <div class="trend-foot"><span>数据来自 7 天问答历史</span><span id="trendPeak">峰值 0 次 / 天</span></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>知识点掌握分布</h2>
+                    <span class="hint">按题库题目数与正确率着色</span>
+                </div>
+                <div id="topicList"></div>
+            </section>
+        </div>
+
+        <div class="col">
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>今日复习队列</h2>
+                    <span class="pill" id="queueCount">0 题</span>
+                </div>
+                <div class="queue-list" id="queueList"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>薄弱知识点 TOP 5</h2>
+                    <span class="hint">按累计答错次数</span>
+                </div>
+                <div class="weak-list" id="weakList"></div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>学习建议</h2>
+                    <span class="hint">基于当前数据自动生成</span>
+                </div>
+                <div id="adviceList" style="font-size:13px;line-height:1.9;color:#cbd5e1;"></div>
+            </section>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        数据说明：问答历史保留 7 天，题库与练习记录保存在本机浏览器 localStorage；清除浏览器缓存会清空这些数据。<br>
+        复习间隔 1 / 2 / 4 / 7 / 15 / 30 天，答错归零，连对两次自动标记「已掌握」。
+    </div>
+</div>
+
+<script>
+    const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30];
+    const DAY = 86400000;
+    const $ = id => document.getElementById(id);
+
+    function safeJSON(key, fallback) {
+        try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return v == null ? fallback : v; }
+        catch (e) { return fallback; }
+    }
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function dayKey(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function isDue(q) {
+        if (!q || q.mastered) return false;
+        if (!q.lastReview) return true;
+        const step = Math.min(Number(q.level) || 0, REVIEW_INTERVALS.length - 1);
+        return Date.now() - Number(q.lastReview) >= REVIEW_INTERVALS[step] * DAY;
+    }
+
+    let history = [], bank = [], sessions = [];
+    let dailyMap = {}, topicStats = [], dueList = [], weakList = [], advice = [];
+
+    function collect() {
+        const h = safeJSON('chatHistory_v1', []);
+        const b = safeJSON('myQuestionBank', []);
+        const s = safeJSON('chatSessions_v1', { sessions: [] });
+        history = Array.isArray(h) ? h.filter(x => x && typeof x.ts === 'number') : [];
+        bank = Array.isArray(b) ? b.filter(x => x && typeof x === 'object') : [];
+        sessions = (s && Array.isArray(s.sessions)) ? s.sessions : [];
+
+        // 按天聚合：问答 + 练习日志
+        dailyMap = {};
+        history.forEach(x => {
+            const k = dayKey(new Date(x.ts));
+            dailyMap[k] = (dailyMap[k] || 0) + 1;
+        });
+        bank.forEach(q => {
+            if (!Array.isArray(q.practiceLog)) return;
+            q.practiceLog.forEach(p => {
+                if (!p || typeof p.ts !== 'number') return;
+                const k = dayKey(new Date(p.ts));
+                dailyMap[k] = (dailyMap[k] || 0) + 1;
+            });
+        });
+
+        // 知识点维度：题目数 / 答对 / 答错 / 待复习
+        const tmap = {};
+        bank.forEach(q => {
+            const t = q.topic || '未分类';
+            if (!tmap[t]) tmap[t] = { name: t, count: 0, right: 0, wrong: 0, due: 0 };
+            tmap[t].count++;
+            tmap[t].right += Number(q.rightCount) || 0;
+            tmap[t].wrong += Number(q.wrongCount) || 0;
+            if (isDue(q)) tmap[t].due++;
+        });
+        topicStats = Object.values(tmap).sort((a, b) => b.count - a.count);
+
+        dueList = bank.filter(isDue).sort((a, b) => {
+            const wa = (Number(b.wrongCount) || 0) - (Number(a.wrongCount) || 0);
+            if (wa) return wa;
+            return (Number(a.lastReview) || 0) - (Number(b.lastReview) || 0);
+        });
+        weakList = topicStats.filter(t => t.wrong > 0).sort((a, b) => b.wrong - a.wrong).slice(0, 5);
+    }
+
+    function buildAdvice() {
+        advice = [];
+        const totalQ = history.length;
+        const dueN = dueList.length;
+        const right = bank.reduce((s, q) => s + (Number(q.rightCount) || 0), 0);
+        const wrong = bank.reduce((s, q) => s + (Number(q.wrongCount) || 0), 0);
+        const acc = right + wrong ? Math.round(right / (right + wrong) * 100) : null;
+
+        if (totalQ === 0 && bank.length === 0) {
+            advice.push('还没有学习记录。先回助手页面问一个 C 语言问题，或让 AI 出一套专属题目并加入题库。');
+            return;
+        }
+        if (dueN > 0) advice.push(`今日有 <b style="color:#fdba74">${dueN}</b> 道题到期待复习，建议先清空复习队列再学新内容。`);
+        else if (bank.length) advice.push('复习队列已清空，节奏保持得不错，可以继续推进新知识点。');
+        if (acc !== null && acc < 60) advice.push(`练习正确率 <b style="color:#fca5a5">${acc}%</b> 偏低，建议回到课件知识库把对应章节重看一遍，再回来重做错题。`);
+        else if (acc !== null) advice.push(`练习正确率 <b style="color:#6ee7b7">${acc}%</b>，掌握情况良好，可以尝试让 AI 出难度更高的编程题。`);
+        if (weakList.length) advice.push(`最需要补的知识点是 <b style="color:#c4b5fd">${esc(weakList[0].name)}</b>（累计答错 ${weakList[0].wrong} 次），建议围绕它做一次单主题多轮问答，再生成知识图谱梳理结构。`);
+        if (sessions.length > 1) advice.push(`你已经建立了 ${sessions.length} 个会话，按主题分开提问能让知识图谱更聚焦。`);
+        if (!bank.length) advice.push('题库还是空的：在 AI 回答下点「加入题库」，就能开始作答和 AI 批改。');
+    }
+
+    // ================= KPI =================
+    function renderKPI() {
+        const right = bank.reduce((s, q) => s + (Number(q.rightCount) || 0), 0);
+        const wrong = bank.reduce((s, q) => s + (Number(q.wrongCount) || 0), 0);
+        const total = right + wrong;
+        $('kpiQuestions').innerHTML = history.length + '<span class="unit">次</span>';
+        $('kpiQuestionsSub').textContent = sessions.length ? `分布在 ${sessions.length} 个会话中` : '近 7 天问答记录';
+        $('kpiActive').innerHTML = Object.values(dailyMap).filter(v => v > 0).length + '<span class="unit">天</span>';
+        $('kpiAccuracy').textContent = total ? Math.round(right / total * 100) + '%' : '—';
+        $('kpiAccuracySub').textContent = total ? `共练习 ${total} 次 · 已掌握 ${bank.filter(q => q.mastered).length} 题` : '还没有练习记录';
+        $('kpiDue').innerHTML = dueList.length + '<span class="unit">题</span>';
+    }
+
+    // ================= 热力图 =================
+    function renderHeatmap() {
+        const wrap = $('heatWrap');
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const start = new Date(today); start.setDate(start.getDate() - 55);
+        start.setDate(start.getDate() - ((start.getDay() + 6) % 7));  // 对齐到周一
+
+        const cols = [];
+        let cur = new Date(start), col = [], lastMonth = -1;
+        while (cur <= today) {
+            if (col.length === 7) { cols.push(col); col = []; }
+            col.push(new Date(cur));
+            cur.setDate(cur.getDate() + 1);
+        }
+        while (col.length < 7) col.push(null);   // 末尾补空
+        cols.push(col);
+
+        const dow = ['一', '', '三', '', '五', '', '日'];
+        let html = '<div class="heat-dow">' + dow.map(d => `<span>${d}</span>`).join('') + '</div><div class="heat-cols">';
+        cols.forEach((c, ci) => {
+            const first = c.find(d => d);
+            let month = '';
+            if (first && first.getMonth() !== lastMonth) { month = (first.getMonth() + 1) + '月'; lastMonth = first.getMonth(); }
+            html += `<div class="heat-col"><div class="heat-month">${month}</div>`;
+            c.forEach(d => {
+                if (!d) { html += '<div class="heat-cell future"></div>'; return; }
+                const key = dayKey(d);
+                const n = dailyMap[key] || 0;
+                const lv = n >= 6 ? 'l3' : n >= 3 ? 'l2' : n >= 1 ? 'l1' : '';
+                const isToday = key === dayKey(today) ? ' today' : '';
+                const future = d > today ? ' future' : '';
+                html += `<div class="heat-cell ${lv}${isToday}${future}" title="${key} · ${n} 次学习行为"></div>`;
+            });
+            html += '</div>';
+        });
+        html += '</div>';
+        wrap.innerHTML = html;
+    }
+
+    // ================= 近 7 日趋势 =================
+    function renderTrend() {
+        const days = [];
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(today); d.setDate(d.getDate() - i);
+            const k = dayKey(d);
+            const qCount = history.filter(h => dayKey(new Date(h.ts)) === k).length;
+            days.push({ label: (d.getMonth() + 1) + '/' + d.getDate(), q: qCount });
+        }
+        const total = days.reduce((s, d) => s + d.q, 0);
+        const max = Math.max(1, ...days.map(d => d.q));
+        $('trendTotal').textContent = '共 ' + total + ' 次';
+        $('trendPeak').textContent = '峰值 ' + max + ' 次 / 天';
+
+        const W = 620, H = 190, pad = 24, barW = 46, step = (W - pad * 2) / 7;
+        let bars = '', labels = '';
+        days.forEach((d, i) => {
+            const x = pad + i * step + (step - barW) / 2;
+            const h = d.q ? Math.max(8, (H - 62) * d.q / max) : 3;
+            const y = H - 34 - h;
+            const fill = d.q ? 'url(#barGrad)' : 'rgba(255,255,255,.06)';
+            bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW}" height="${h.toFixed(1)}" rx="7" fill="${fill}"/>`;
+            if (d.q) bars += `<text x="${(x + barW / 2).toFixed(1)}" y="${(y - 9).toFixed(1)}" text-anchor="middle" font-size="12" fill="#7dd3fc">${d.q}</text>`;
+            labels += `<text x="${(x + barW / 2).toFixed(1)}" y="${H - 12}" text-anchor="middle" font-size="11" fill="rgba(148,163,184,.72)">${d.label}</text>`;
+        });
+        let line = `<line x1="${pad}" y1="${H - 33}" x2="${W - pad}" y2="${H - 33}" stroke="rgba(255,255,255,.1)" stroke-width="1"/>`;
+        $('trendSvg').innerHTML = `<defs><linearGradient id="barGrad" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>${line}${bars}${labels}`;
+    }
+
+    // ================= 知识点分布 =================
+    function renderTopics() {
+        const box = $('topicList');
+        if (!topicStats.length) {
+            box.innerHTML = '<div class="empty-mini">还没有题库数据<br>在 AI 回答下点「加入题库」，这里就会按知识点统计掌握情况</div>';
+            return;
+        }
+        const max = Math.max(1, ...topicStats.map(t => t.count));
+        box.innerHTML = topicStats.slice(0, 9).map(t => {
+            const pct = Math.round(t.count / max * 100);
+            const total = t.right + t.wrong;
+            const acc = total ? Math.round(t.right / total * 100) : null;
+            const color = acc === null ? 'linear-gradient(90deg,#475569,#64748b)'
+                : acc >= 70 ? 'linear-gradient(90deg,#0f766e,#34d399)'
+                : acc >= 40 ? 'linear-gradient(90deg,#8b5cf6,#22d3ee)'
+                : 'linear-gradient(90deg,#fb923c,#f43f5e)';
+            const label = acc === null ? '未练习' : acc + '% 正确';
+            return `<div class="topic-row">
+                <span class="topic-name" title="${esc(t.name)}">${esc(t.name)}</span>
+                <span class="topic-track"><span class="topic-fill" style="width:${pct}%;background:${color}"></span></span>
+                <span class="topic-num">${t.count} 题 · ${label}</span>
+            </div>`;
+        }).join('');
+    }
+
+    // ================= 复习队列 =================
+    function renderQueue() {
+        $('queueCount').textContent = dueList.length + ' 题';
+        const box = $('queueList');
+        if (!dueList.length) {
+            box.innerHTML = '<div class="empty-mini">🎉 今日复习已清空<br>新收藏的题目会自动进入待练队列</div>';
+            return;
+        }
+        box.innerHTML = dueList.slice(0, 8).map((q, i) => {
+            const isNew = !q.lastReview;
+            const tag = isNew ? '<span class="q-tag tag-new">新题待练</span>' : '<span class="q-tag tag-due">到期复习</span>';
+            const plain = String(q.content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 36);
+            const sub = isNew ? '收录 ' + esc(q.time || '') : '错过 ' + (Number(q.wrongCount) || 0) + ' 次 · 上次 ' + new Date(Number(q.lastReview)).toLocaleDateString();
+            return `<div class="queue-item" onclick="window.location.href='bank.html'" style="cursor:pointer">
+                <span class="q-rank">${String(i + 1).padStart(2, '0')}</span>
+                <span class="q-main"><span class="q-title">${esc(plain || '（题目内容）')}</span><span class="q-sub">${sub}</span></span>
+                ${tag}
+            </div>`;
+        }).join('') + (dueList.length > 8 ? `<div class="empty-mini" style="padding:8px">还有 ${dueList.length - 8} 题，<a href="bank.html">去题库查看 →</a></div>` : '');
+    }
+
+    // ================= 薄弱点 =================
+    function renderWeak() {
+        const box = $('weakList');
+        if (!weakList.length) {
+            box.innerHTML = '<div class="empty-mini">暂无错题记录 ✨<br>作答后被判定错误的题目会汇总到这里</div>';
+            return;
+        }
+        const max = Math.max(1, ...weakList.map(t => t.wrong));
+        box.innerHTML = weakList.map((t, i) => `<div class="weak-item">
+            <span class="q-rank">${i + 1}</span>
+            <span class="q-main"><span class="q-title">${esc(t.name)}</span><span class="q-sub">${t.count} 题 · ${t.due} 题待复习</span></span>
+            <span class="weak-bar"><i style="width:${Math.round(t.wrong / max * 100)}%"></i></span>
+            <span class="q-tag tag-bad">错 ${t.wrong} 次</span>
+        </div>`).join('');
+    }
+
+    function renderAdvice() {
+        $('adviceList').innerHTML = advice.map(a => `<p style="margin-bottom:9px">· ${a}</p>`).join('');
+    }
+
+    // ================= 导出学习简报 =================
+    function exportBrief() {
+        const right = bank.reduce((s, q) => s + (Number(q.rightCount) || 0), 0);
+        const wrong = bank.reduce((s, q) => s + (Number(q.wrongCount) || 0), 0);
+        const acc = right + wrong ? Math.round(right / (right + wrong) * 100) + '%' : '暂无';
+        const lines = [
+            '# C语言学习简报', '',
+            '生成时间：' + new Date().toLocaleString(), '',
+            '## 一、学习概况', '',
+            '- 近 7 天提问：' + history.length + ' 次',
+            '- 会话数：' + sessions.length + ' 个',
+            '- 活跃天数（近 8 周）：' + Object.values(dailyMap).filter(v => v > 0).length + ' 天',
+            '- 题库收录：' + bank.length + ' 题，已掌握 ' + bank.filter(q => q.mastered).length + ' 题',
+            '- 练习正确率：' + acc + '（答对 ' + right + ' 次 / 答错 ' + wrong + ' 次）',
+            '- 今日待复习：' + dueList.length + ' 题', '',
+            '## 二、知识点掌握分布', ''
+        ];
+        if (topicStats.length) {
+            topicStats.forEach(t => {
+                const total = t.right + t.wrong;
+                const a = total ? Math.round(t.right / total * 100) + '%' : '未练习';
+                lines.push('- ' + t.name + '：' + t.count + ' 题，正确率 ' + a + '，待复习 ' + t.due + ' 题');
+            });
+        } else lines.push('- 暂无题库数据');
+        lines.push('', '## 三、薄弱知识点', '');
+        if (weakList.length) weakList.forEach((t, i) => lines.push((i + 1) + '. ' + t.name + '：累计答错 ' + t.wrong + ' 次，涉及 ' + t.count + ' 题'));
+        else lines.push('- 暂无错题记录');
+        lines.push('', '## 四、今日复习队列', '');
+        if (dueList.length) dueList.slice(0, 20).forEach((q, i) => lines.push((i + 1) + '. [' + (q.topic || '未分类') + '] ' + String(q.content || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 50)));
+        else lines.push('- 复习队列已清空');
+        lines.push('', '## 五、学习建议', '');
+        advice.forEach(a => lines.push('- ' + a.replace(/<[^>]+>/g, '')));
+        lines.push('', '---', '', '本简报由本地数据自动生成，未上传任何内容到云端。');
+
+        const blob = new Blob([lines.join('\n')], { type: 'text/markdown;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'C语言学习简报_' + dayKey(new Date()) + '.md';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    }
+
+    function renderAll() {
+        collect();
+        buildAdvice();
+        renderKPI();
+        renderHeatmap();
+        renderTrend();
+        renderTopics();
+        renderQueue();
+        renderWeak();
+        renderAdvice();
+    }
+
+    $('heroDate').textContent = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' });
+    $('btnRefresh').onclick = renderAll;
+    $('btnExport').onclick = exportBrief;
+    window.addEventListener('storage', renderAll);
+    renderAll();
+</script>
+</body>
+</html>
