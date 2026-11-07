@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的课件知识库 - C语言AI小助手</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft Yahei", sans-serif; }
+
+    body {
+        min-height: 100vh;
+        background-color: #070b14;
+        background-image:
+            radial-gradient(ellipse 48% 40% at 6% 6%, rgba(124, 58, 237, 0.28), transparent 60%),
+            radial-gradient(ellipse 42% 40% at 96% 30%, rgba(34, 211, 238, 0.12), transparent 60%),
+            radial-gradient(ellipse 45% 40% at 60% 100%, rgba(168, 85, 247, 0.15), transparent 60%),
+            linear-gradient(160deg, #0b1020 0%, #070b14 50%, #0e0a1c 100%);
+        background-attachment: fixed;
+        color: #e5e7eb;
+    }
+    .bg-grid {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+        background-size: 52px 52px;
+        mask-image: radial-gradient(ellipse 70% 60% at 40% 20%, black 20%, transparent 78%);
+        -webkit-mask-image: radial-gradient(ellipse 70% 60% at 40% 20%, black 20%, transparent 78%);
+    }
+    .orb { position: fixed; border-radius: 50%; filter: blur(90px); z-index: 0; pointer-events: none; }
+    .orb1 { width: 380px; height: 380px; top: -130px; left: -100px; background: rgba(139,92,246,0.26); }
+    .orb2 { width: 320px; height: 320px; bottom: -110px; right: -80px; background: rgba(34,211,238,0.13); }
+
+    .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 24px 30px 70px; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.13); border-radius: 6px; }
+
+    /* 顶部导航 */
+    .nav {
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 13px 14px 13px 20px; margin-bottom: 30px;
+        background: rgba(13,18,34,0.6); border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 999px; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .nav-left { display: flex; align-items: center; gap: 14px; }
+    .logo { font-size: 17px; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 8px; user-select: none; }
+    .logo .spark { background: linear-gradient(135deg, #22d3ee, #a855f7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .divider { width: 1px; height: 20px; background: rgba(255,255,255,0.12); }
+    .crumb { font-size: 12.5px; color: rgba(148,163,184,0.75); letter-spacing: 2px; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .status-pill {
+        font-size: 12.5px; color: #7dd3fc; padding: 7px 15px; border-radius: 999px;
+        background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3);
+    }
+    .status-pill.offline { color: #fca5a5; background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.35); }
+    .btn-back {
+        font-size: 13.5px; color: #cbd5e1; cursor: pointer; padding: 8px 18px;
+        background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 999px; transition: all .25s;
+    }
+    .btn-back:hover { color: #fff; background: rgba(255,255,255,0.12); }
+
+    /* 标题 */
+    .head { margin-bottom: 26px; padding-left: 6px; }
+    .eyebrow {
+        display: inline-block; font-size: 11px; letter-spacing: 4px; font-weight: 600; color: #7dd3fc;
+        padding: 5px 14px; border-radius: 999px; margin-bottom: 14px;
+        background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3);
+    }
+    .head h1 {
+        font-size: 38px; font-weight: 700; letter-spacing: 1px; line-height: 1.2;
+        background: linear-gradient(120deg, #ffffff 35%, #a855f7 70%, #22d3ee 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .head p { margin-top: 10px; font-size: 14px; color: rgba(148,163,184,0.8); line-height: 1.8; }
+
+    /* 两栏布局 */
+    .layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
+
+    .panel {
+        border-radius: 22px; padding: 24px;
+        background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.09);
+        backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+        box-shadow: 0 14px 40px rgba(0,0,0,0.35);
+    }
+    .panel + .panel { margin-top: 20px; }
+    .panel-title { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    .panel-sub { font-size: 12px; color: rgba(148,163,184,0.7); margin-bottom: 18px; line-height: 1.7; }
+
+    /* 上传区 */
+    .drop-zone {
+        border: 2px dashed rgba(139,92,246,0.45); border-radius: 16px;
+        background: rgba(139,92,246,0.06); padding: 30px 18px; text-align: center;
+        cursor: pointer; transition: all .25s;
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+        border-color: #22d3ee; background: rgba(34,211,238,0.1);
+        box-shadow: 0 0 24px rgba(34,211,238,0.18);
+    }
+    .drop-icon {
+        width: 54px; height: 54px; margin: 0 auto 14px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center; font-size: 26px;
+        background: linear-gradient(135deg, rgba(34,211,238,0.15), rgba(139,92,246,0.2));
+        border: 1px solid rgba(139,92,246,0.4);
+    }
+    .drop-zone h3 { font-size: 14px; color: #fff; font-weight: 600; margin-bottom: 6px; }
+    .drop-zone p { font-size: 12px; color: rgba(148,163,184,0.7); line-height: 1.8; }
+    #fileInput { display: none; }
+    .upload-log { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; max-height: 170px; overflow-y: auto; }
+    .log-item { font-size: 12px; color: rgba(203,213,225,0.8); padding: 7px 11px; border-radius: 9px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
+    .log-item.ok { color: #6ee7b7; }
+    .log-item.err { color: #fca5a5; }
+
+    /* 统计 */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat {
+        border-radius: 14px; padding: 14px 16px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    }
+    .stat .label { font-size: 11px; color: rgba(148,163,184,0.7); letter-spacing: 1px; margin-bottom: 7px; }
+    .stat .value { font-size: 22px; font-weight: 700; line-height: 1; }
+    .stat:nth-child(1) .value { color: #22d3ee; }
+    .stat:nth-child(2) .value { color: #a855f7; }
+    .stat:nth-child(3) .value { color: #f472b6; }
+    .stat:nth-child(4) .value { color: #6ee7b7; }
+
+    .tip-box {
+        margin-top: 16px; padding: 14px 16px; border-radius: 14px;
+        background: rgba(34,211,238,0.06); border: 1px solid rgba(34,211,238,0.22);
+        font-size: 12px; line-height: 1.9; color: rgba(203,213,225,0.85);
+    }
+    .tip-box b { color: #7dd3fc; }
+
+    /* 文档列表 */
+    .doc-list { display: flex; flex-direction: column; gap: 12px; }
+    .doc-card {
+        border-radius: 16px; padding: 16px 18px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        transition: all .25s;
+    }
+    .doc-card:hover { border-color: rgba(255,255,255,0.16); background: rgba(255,255,255,0.06); }
+    .doc-card.disabled { opacity: 0.55; }
+    .doc-top { display: flex; align-items: flex-start; gap: 12px; }
+    .file-icon {
+        width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+        background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.35); color: #c4b5fd;
+    }
+    .file-icon.pdf { background: rgba(248,113,113,0.12); border-color: rgba(248,113,113,0.35); color: #fca5a5; }
+    .file-icon.docx { background: rgba(96,165,250,0.12); border-color: rgba(96,165,250,0.35); color: #93c5fd; }
+    .file-icon.txt, .file-icon.md { background: rgba(52,211,153,0.12); border-color: rgba(52,211,153,0.35); color: #6ee7b7; }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-name { font-size: 14px; color: #fff; font-weight: 600; word-break: break-all; margin-bottom: 7px; }
+    .doc-meta { font-size: 11.5px; color: rgba(148,163,184,0.7); display: flex; flex-wrap: wrap; gap: 6px 14px; }
+    .doc-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .switch { position: relative; width: 42px; height: 23px; cursor: pointer; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+        position: absolute; inset: 0; border-radius: 999px; transition: .25s;
+        background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.16);
+    }
+    .slider::before {
+        content: ""; position: absolute; width: 15px; height: 15px; left: 3px; top: 3px;
+        border-radius: 50%; background: #cbd5e1; transition: .25s;
+    }
+    .switch input:checked + .slider { background: linear-gradient(135deg, #22d3ee, #8b5cf6); border-color: transparent; box-shadow: 0 0 12px rgba(34,211,238,0.35); }
+    .switch input:checked + .slider::before { transform: translateX(19px); background: #fff; }
+    .mini-btn {
+        font-size: 11.5px; padding: 6px 13px; border-radius: 999px; cursor: pointer;
+        color: #cbd5e1; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.12); transition: all .2s;
+    }
+    .mini-btn:hover { color: #fff; background: rgba(255,255,255,0.12); }
+    .mini-btn.danger:hover { color: #fca5a5; border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.1); }
+    .chunk-preview { display: none; margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,0.13); }
+    .doc-card.open .chunk-preview { display: block; }
+    .chunk-item { font-size: 12px; line-height: 1.8; color: rgba(203,213,225,0.8); padding: 10px 12px; border-radius: 10px; background: rgba(0,0,0,0.22); margin-bottom: 8px; }
+    .chunk-item b { color: #7dd3fc; margin-right: 8px; font-weight: 500; }
+    .empty { text-align: center; padding: 50px 20px; color: rgba(148,163,184,0.7); font-size: 13.5px; line-height: 1.9; }
+    .empty .ring {
+        width: 84px; height: 84px; margin: 0 auto 18px; border-radius: 50%; font-size: 34px;
+        display: flex; align-items: center; justify-content: center;
+        border: 1px dashed rgba(139,92,246,0.45); background: rgba(139,92,246,0.07);
+    }
+
+    /* 检索测试 */
+    .search-row { display: flex; gap: 10px; }
+    .search-input {
+        flex: 1; padding: 12px 18px; border-radius: 999px; font-size: 14px; color: #f1f5f9;
+        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); outline: none;
+        transition: all .25s;
+    }
+    .search-input:focus { border-color: rgba(34,211,238,0.6); box-shadow: 0 0 18px rgba(34,211,238,0.18); }
+    .search-input::placeholder { color: rgba(148,163,184,0.55); }
+    .btn-primary {
+        padding: 12px 26px; border-radius: 999px; border: none; cursor: pointer;
+        font-size: 14px; font-weight: 600; color: #06121f;
+        background: linear-gradient(135deg, #22d3ee, #8b5cf6);
+        box-shadow: 0 0 20px rgba(34,211,238,0.35); transition: all .25s;
+    }
+    .btn-primary:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .hit-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .hit {
+        padding: 13px 15px; border-radius: 12px; font-size: 12.5px; line-height: 1.8;
+        background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.08); color: rgba(203,213,225,0.85);
+    }
+    .hit-head { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; font-size: 11.5px; }
+    .hit-score { color: #6ee7b7; font-weight: 600; }
+    .hit-src { color: #7dd3fc; }
+
+    .footer { margin-top: 28px; text-align: center; font-size: 12px; color: rgba(148,163,184,0.55); letter-spacing: 1px; }
+
+    @media (max-width: 900px) {
+        .layout { grid-template-columns: 1fr; }
+        .head h1 { font-size: 30px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="page">
+
+    <header class="nav">
+        <div class="nav-left">
+            <div class="logo" onclick="location.href='index.html'"><span class="spark">✦</span> C语言 AI 助手</div>
+            <div class="divider"></div>
+            <span class="crumb">KNOWLEDGE BASE · 课件舱</span>
+        </div>
+        <div class="nav-right">
+            <span class="status-pill" id="statusPill">● 正在连接后端</span>
+            <button class="btn-back" onclick="location.href='index.html'">⬅ 返回对话</button>
+        </div>
+    </header>
+
+    <section class="head">
+        <span class="eyebrow">MY COURSEWARE VAULT</span>
+        <h1>我的课件知识库</h1>
+        <p>上传 C 语言课件，系统自动切分成片段并建立索引。提问时只把最相关的片段交给本地大模型，纯离线运行、课件不出本机。</p>
+    </section>
+
+    <div class="layout">
+
+        <!-- 左栏 -->
+        <div>
+            <div class="panel">
+                <div class="panel-title">📤 上传课件</div>
+                <div class="panel-sub">支持 PDF / Word(.docx) / TXT / Markdown，可一次选多个文件</div>
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-icon">⬆</div>
+                    <h3>点击选择，或把课件拖到这里</h3>
+                    <p>单个文件最大 20MB<br>扫描版 PDF 需先转成可复制文字的版本</p>
+                </div>
+                <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.md">
+                <div class="upload-log" id="uploadLog"></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">📊 知识库概况</div>
+                <div class="panel-sub">数据保存在 server/kb_data/kb.json，重启服务不会丢失</div>
+                <div class="stats-grid">
+                    <div class="stat"><div class="label">课件总数</div><div class="value" id="statDocs">0</div></div>
+                    <div class="stat"><div class="label">已启用</div><div class="value" id="statEnabled">0</div></div>
+                    <div class="stat"><div class="label">索引片段</div><div class="value" id="statChunks">0</div></div>
+                    <div class="stat"><div class="label">总字数</div><div class="value" id="statChars">0</div></div>
+                </div>
+                <div class="tip-box">
+                    <b>怎么让问答用上课件？</b><br>
+                    回到对话页 → 左侧开启「本地知识库访问」→ 打开底部「基于课件问答」开关。仅本地 Ollama 模式生效，课件不会上传到云端。
+                </div>
+            </div>
+        </div>
+
+        <!-- 右栏 -->
+        <div>
+            <div class="panel">
+                <div class="panel-title">📚 课件列表</div>
+                <div class="panel-sub">停用后该课件的片段不再参与检索；可展开预览切分结果</div>
+                <div class="doc-list" id="docList"><div class="empty">加载中...</div></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">🔍 检索效果测试</div>
+                <div class="panel-sub">输入一个课堂问题，看看知识库会挑出哪几段交给模型</div>
+                <div class="search-row">
+                    <input class="search-input" id="searchInput" placeholder="例如：指针和数组有什么区别？" >
+                    <button class="btn-primary" id="searchBtn">测试检索</button>
+                </div>
+                <div class="hit-list" id="hitList"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="footer">C语言 AI 小助手 · 自有课件知识库 · 本地离线检索</footer>
+</div>
+
+<script>
+    const API = 'http://localhost:3001';
+    const $ = id => document.getElementById(id);
+
+    // ================= 后端状态 & 列表 =================
+    async function loadDocs() {
+        try {
+            const resp = await fetch(`${API}/api/kb/list`);
+            const data = await resp.json();
+            $('statusPill').className = 'status-pill';
+            $('statusPill').textContent = '● 后端已连接 (3001)';
+            $('statDocs').textContent = data.stats.docCount;
+            $('statEnabled').textContent = data.stats.enabledCount;
+            $('statChunks').textContent = data.stats.chunkCount;
+            $('statChars').textContent = data.stats.totalChars.toLocaleString();
+            renderDocs(data.docs);
+        } catch (e) {
+            $('statusPill').className = 'status-pill offline';
+            $('statusPill').textContent = '● 后端未启动';
+            $('docList').innerHTML = `<div class="empty">无法连接知识库服务<br>请先运行 <b>node server-ollama.js</b>（端口 3001）</div>`;
+        }
+    }
+
+    function fmtSize(n) {
+        if (!n) return '—';
+        return n > 1024 * 1024 ? (n / 1024 / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+    }
+
+    function renderDocs(docs) {
+        const list = $('docList');
+        if (!docs.length) {
+            list.innerHTML = `<div class="empty"><div class="ring">📂</div>知识库还是空的<br>从左边上传第一份 C 语言课件吧</div>`;
+            return;
+        }
+        list.innerHTML = '';
+        [...docs].reverse().forEach(doc => {
+            const card = document.createElement('div');
+            card.className = 'doc-card' + (doc.enabled ? '' : ' disabled');
+            const ext = (doc.ext || '').replace('.', '') || 'file';
+            card.innerHTML = `
+                <div class="doc-top">
+                    <div class="file-icon ${ext}">${ext.toUpperCase().slice(0, 4)}</div>
+                    <div class="doc-info">
+                        <div class="doc-name"></div>
+                        <div class="doc-meta">
+                            <span>${fmtSize(doc.size)}</span>
+                            <span>${doc.charCount} 字</span>
+                            <span>${doc.chunkCount} 个片段</span>
+                            <span>${doc.time}</span>
+                        </div>
+                    </div>
+                    <div class="doc-actions">
+                        <label class="switch" title="启用 / 停用">
+                            <input type="checkbox" ${doc.enabled ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                        <button class="mini-btn preview-btn">预览</button>
+                        <button class="mini-btn danger del-btn">删除</button>
+                    </div>
+                </div>
+                <div class="chunk-preview"><div class="chunks">加载中...</div></div>
+            `;
+            card.querySelector('.doc-name').textContent = doc.name;
+
+            card.querySelector('input').onchange = async function() {
+                await fetch(`${API}/api/kb/toggle`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: doc.id, enabled: this.checked })
+                });
+                loadDocs();
+            };
+
+            card.querySelector('.preview-btn').onclick = async function() {
+                const opened = card.classList.contains('open');
+                card.classList.toggle('open', !opened);
+                if (opened) return;
+                try {
+                    const r = await fetch(`${API}/api/kb/chunks?id=${encodeURIComponent(doc.id)}`);
+                    const d = await r.json();
+                    const box = card.querySelector('.chunks');
+                    box.innerHTML = d.chunks.length
+                        ? d.chunks.slice(0, 6).map(c => `<div class="chunk-item"><b>第${c.index + 1}段</b>${escapeHtml(c.text.slice(0, 220))}${c.text.length > 220 ? '…' : ''}</div>`).join('')
+                          + (d.chunks.length > 6 ? `<div style="font-size:11.5px;color:rgba(148,163,184,0.6);padding:0 4px;">共 ${d.chunkCount || d.chunks.length} 段，此处仅显示前 6 段</div>` : '')
+                        : '<div style="font-size:12px;color:rgba(148,163,184,0.6);">没有片段</div>';
+                } catch (e) {
+                    card.querySelector('.chunks').textContent = '预览加载失败';
+                }
+            };
+
+            card.querySelector('.del-btn').onclick = async function() {
+                if (!confirm(`确定从知识库删除「${doc.name}」吗？`)) return;
+                await fetch(`${API}/api/kb/delete`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: doc.id })
+                });
+                loadDocs();
+            };
+
+            list.appendChild(card);
+        });
+    }
+
+    function escapeHtml(s) {
+        return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    // ================= 上传（支持多文件队列） =================
+    const dropZone = $('dropZone');
+    const fileInput = $('fileInput');
+    const uploadLog = $('uploadLog');
+
+    function log(msg, cls = '') {
+        const el = document.createElement('div');
+        el.className = 'log-item ' + cls;
+        el.textContent = msg;
+        uploadLog.appendChild(el);
+        uploadLog.scrollTop = uploadLog.scrollHeight;
+    }
+
+    dropZone.onclick = () => fileInput.click();
+    dropZone.ondragover = e => { e.preventDefault(); dropZone.classList.add('dragover'); };
+    dropZone.ondragleave = () => dropZone.classList.remove('dragover');
+    dropZone.ondrop = e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files);
+    };
+    fileInput.onchange = () => handleFiles(fileInput.files);
+
+    async function handleFiles(files) {
+        if (!files || !files.length) return;
+        for (const file of files) {
+            log(`⏳ 正在解析 ${file.name} ...`);
+            const fd = new FormData();
+            fd.append('file', file);
+            try {
+                const resp = await fetch(`${API}/api/kb/upload`, { method: 'POST', body: fd });
+                const data = await resp.json();
+                if (data.ok) {
+                    uploadLog.lastChild.textContent = `✓ ${file.name} 已入库（${data.doc.charCount} 字 / ${data.doc.chunkCount} 段）`;
+                    uploadLog.lastChild.className = 'log-item ok';
+                } else {
+                    uploadLog.lastChild.textContent = `✗ ${file.name}：${data.error || '上传失败'}`;
+                    uploadLog.lastChild.className = 'log-item err';
+                }
+            } catch (e) {
+                uploadLog.lastChild.textContent = `✗ ${file.name}：无法连接后端 3001`;
+                uploadLog.lastChild.className = 'log-item err';
+            }
+        }
+        fileInput.value = '';
+        loadDocs();
+    }
+
+    // ================= 检索测试 =================
+    async function testSearch() {
+        const q = $('searchInput').value.trim();
+        if (!q) return alert('请输入要测试的问题');
+        const box = $('hitList');
+        box.innerHTML = '<div class="empty" style="padding:20px;">检索中...</div>';
+        try {
+            const resp = await fetch(`${API}/api/kb/search`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: q, topK: 4 })
+            });
+            const data = await resp.json();
+            if (!data.results || !data.results.length) {
+                box.innerHTML = `<div class="empty" style="padding:24px;">没有命中片段<br>换个带知识点关键词的问法试试（如「指针」「malloc」）</div>`;
+                return;
+            }
+            box.innerHTML = data.results.map(r => `
+                <div class="hit">
+                    <div class="hit-head"><span class="hit-score">相关度 ${r.score}</span><span class="hit-src">${escapeHtml(r.docName)} · 第${r.index + 1}段</span></div>
+                    ${escapeHtml(r.text.slice(0, 260))}${r.text.length > 260 ? '…' : ''}
+                </div>
+            `).join('');
+        } catch (e) {
+            box.innerHTML = `<div class="empty" style="padding:24px;">检索失败，请确认后端 3001 已启动</div>`;
+        }
+    }
+    $('searchBtn').onclick = testSearch;
+    $('searchInput').onkeydown = e => { if (e.key === 'Enter') testSearch(); };
+
+    loadDocs();
+</script>
+</body>
+</html>
