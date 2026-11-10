@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C 代码体检舱 · 四层证据判卷</title>
+<style>
+    :root{
+        --bg:#060b13; --panel:rgba(255,255,255,.035); --line:rgba(255,255,255,.09);
+        --txt:#e7eef8; --dim:rgba(203,213,225,.62); --faint:rgba(203,213,225,.38);
+        --cyan:#22d3ee; --mint:#34d399; --amber:#fbbf24; --rose:#fb7185; --violet:#a78bfa;
+        --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+        min-height:100vh; color:var(--txt); background:var(--bg);
+        font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;
+        background-image:
+            radial-gradient(900px 500px at 12% -8%,rgba(52,211,153,.11),transparent 60%),
+            radial-gradient(800px 500px at 92% 8%,rgba(34,211,238,.09),transparent 60%),
+            linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+            linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+        background-size:auto,auto,34px 34px,34px 34px;
+    }
+    a{color:inherit;text-decoration:none}
+    button{font-family:inherit;cursor:pointer}
+    textarea,input,select{font-family:inherit;outline:none}
+
+    /* ---------- 顶栏 ---------- */
+    .top{
+        display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+        padding:18px 30px;border-bottom:1px solid var(--line);
+        background:rgba(6,11,19,.72);backdrop-filter:blur(18px);
+        position:sticky;top:0;z-index:20;
+    }
+    .back{
+        font-size:12.5px;color:var(--dim);padding:8px 14px;border-radius:999px;
+        border:1px solid var(--line);background:rgba(255,255,255,.04);transition:.2s;
+    }
+    .back:hover{color:#fff;border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.09)}
+    .brand{display:flex;align-items:center;gap:13px;margin-right:auto}
+    .brand-mark{
+        width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:19px;
+        background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(34,211,238,.16));
+        border:1px solid rgba(52,211,153,.3);box-shadow:0 0 26px rgba(52,211,153,.16);
+    }
+    .brand h1{font-size:17px;letter-spacing:.5px;font-weight:700}
+    .brand p{font-size:11.5px;color:var(--faint);margin-top:3px;letter-spacing:.6px}
+    .env-lamps{display:flex;gap:9px;flex-wrap:wrap}
+    .lamp{
+        display:flex;align-items:center;gap:7px;font-size:11px;color:var(--dim);
+        padding:7px 11px;border-radius:9px;background:rgba(255,255,255,.035);border:1px solid var(--line);
+    }
+    .dot{width:7px;height:7px;border-radius:50%;background:#64748b;box-shadow:0 0 0 3px rgba(100,116,139,.14)}
+    .lamp.on .dot{background:var(--mint);box-shadow:0 0 9px var(--mint)}
+    .lamp.off .dot{background:var(--amber);box-shadow:0 0 9px rgba(251,191,36,.6)}
+    .lamp.on{color:rgba(52,211,153,.95);border-color:rgba(52,211,153,.24)}
+
+    /* ---------- 三栏布局 ---------- */
+    .wrap{
+        display:grid;grid-template-columns:330px minmax(380px,1fr) 430px;
+        gap:16px;padding:18px 22px 30px;max-width:1900px;margin:0 auto;align-items:start;
+    }
+    @media(max-width:1450px){.wrap{grid-template-columns:300px 1fr 380px}}
+    @media(max-width:1180px){.wrap{grid-template-columns:1fr 1fr}.panel-code{grid-column:1/-1;grid-row:1}}
+    @media(max-width:780px){.wrap{grid-template-columns:1fr}.panel-code{grid-column:auto;grid-row:auto}.top{padding:14px 16px}}
+    .panel{
+        background:var(--panel);border:1px solid var(--line);border-radius:18px;
+        backdrop-filter:blur(14px);box-shadow:0 18px 50px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05);
+        overflow:hidden;
+    }
+    .panel-hd{
+        display:flex;align-items:center;justify-content:space-between;gap:8px;
+        padding:14px 17px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.018);
+    }
+    .panel-hd h2{font-size:12.5px;letter-spacing:1.6px;color:rgba(231,238,248,.9);font-weight:600}
+    .panel-hd .sub{font-size:10.5px;color:var(--faint);letter-spacing:.5px}
+    .panel-bd{padding:16px 17px}
+
+    /* ---------- 左栏：上传与配置 ---------- */
+    .drop{
+        border:1.5px dashed rgba(52,211,153,.34);border-radius:14px;padding:20px 12px;text-align:center;
+        background:linear-gradient(160deg,rgba(52,211,153,.06),rgba(34,211,238,.025));
+        transition:.22s;cursor:pointer;position:relative;
+    }
+    .drop:hover,.drop.drag{border-color:var(--mint);background:rgba(52,211,153,.1);transform:translateY(-2px)}
+    .drop .ico{font-size:27px;display:block;margin-bottom:8px;filter:drop-shadow(0 0 12px rgba(52,211,153,.5))}
+    .drop b{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+    .drop small{font-size:11px;color:var(--faint);line-height:1.6}
+    #fileInput{display:none}
+    .filechip{
+        display:none;align-items:center;gap:8px;margin-top:10px;padding:9px 11px;border-radius:10px;
+        background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.22);font-size:11.5px;color:rgba(52,211,153,.95);
+    }
+    .filechip.show{display:flex}
+    .filechip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .filechip button{margin-left:auto;background:none;border:none;color:var(--faint);font-size:14px}
+    .field{margin-top:14px}
+    .field label{display:block;font-size:11px;color:var(--dim);letter-spacing:.6px;margin-bottom:7px}
+    .field label em{font-style:normal;color:var(--faint);font-size:10px;letter-spacing:0}
+    .field textarea,.field select,.field input{
+        width:100%;background:rgba(4,9,17,.66);border:1px solid var(--line);border-radius:10px;
+        color:var(--txt);font-size:12.5px;padding:10px 11px;resize:vertical;transition:.2s;
+    }
+    .field textarea:focus,.field select:focus{border-color:rgba(52,211,153,.5);box-shadow:0 0 0 3px rgba(52,211,153,.08)}
+    .field textarea::placeholder{color:rgba(203,213,225,.28)}
+    .field select option{background:#0d1522;color:#e7eef8}
+    .field small{display:block;font-size:10px;color:var(--faint);margin-top:5px;line-height:1.5}
+    .switches{display:flex;gap:9px;margin-top:15px}
+    .sw{
+        flex:1;display:flex;align-items:center;justify-content:center;gap:7px;font-size:11.5px;
+        padding:9px 6px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.03);
+        color:var(--dim);cursor:pointer;user-select:none;transition:.2s;
+    }
+    .sw.on{color:rgba(52,211,153,.95);border-color:rgba(52,211,153,.32);background:rgba(52,211,153,.08)}
+    .sw i{width:22px;height:12px;border-radius:99px;background:rgba(255,255,255,.14);position:relative;transition:.2s}
+    .sw i::after{content:'';position:absolute;left:2px;top:2px;width:8px;height:8px;border-radius:50%;background:#94a3b8;transition:.2s}
+    .sw.on i{background:rgba(52,211,153,.4)}
+    .sw.on i::after{left:12px;background:var(--mint)}
+    .run-btn{
+        width:100%;margin-top:16px;padding:13px;border:none;border-radius:12px;font-size:13.5px;font-weight:700;letter-spacing:1px;
+        color:#04140f;background:linear-gradient(120deg,#34d399,#22d3ee);
+        box-shadow:0 10px 30px rgba(52,211,153,.22);transition:.2s;
+    }
+    .run-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(52,211,153,.34)}
+    .run-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .privacy{display:flex;gap:7px;align-items:flex-start;margin-top:12px;font-size:10.5px;color:var(--faint);line-height:1.65}
+    .history{margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}
+    .history h3{font-size:10.5px;color:var(--faint);letter-spacing:1.4px;margin-bottom:10px;font-weight:600}
+    .hist-row{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--dim);padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.05)}
+    .hist-row b{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--mint)}
+    .hist-empty{font-size:11px;color:var(--faint);line-height:1.6}
+
+    /* ---------- 中栏：代码编辑器 ---------- */
+    .editor{display:flex;background:rgba(3,8,15,.72);position:relative;min-height:520px;max-height:70vh}
+    .gutter{
+        flex:0 0 52px;padding:12px 8px 12px 0;text-align:right;font-family:var(--mono);font-size:12px;
+        line-height:21px;color:rgba(148,163,184,.42);background:rgba(255,255,255,.018);
+        border-right:1px solid var(--line);overflow:hidden;user-select:none;white-space:pre;
+    }
+    #codeInput{
+        flex:1;min-width:0;background:transparent;border:none;resize:none;color:#d9e7f5;
+        font-family:var(--mono);font-size:12.5px;line-height:21px;padding:12px 14px;
+        white-space:pre;overflow:auto;tab-size:4;
+    }
+    #codeInput::placeholder{color:rgba(148,163,184,.3)}
+    #codeInput::selection{background:rgba(52,211,153,.28);color:#fff}
+    .editor-ft{
+        display:flex;gap:14px;flex-wrap:wrap;padding:9px 16px;border-top:1px solid var(--line);
+        font-size:10.5px;color:var(--faint);background:rgba(255,255,255,.014);
+    }
+    .editor-ft b{color:rgba(52,211,153,.8);font-family:var(--mono)}
+    .mini-btn{background:none;border:1px solid var(--line);color:var(--dim);font-size:10.5px;padding:4px 10px;border-radius:7px;transition:.2s}
+    .mini-btn:hover{color:#fff;border-color:rgba(52,211,153,.4)}
+
+    /* ---------- 右栏：报告 ---------- */
+    .empty{padding:34px 22px;text-align:center}
+    .empty .radar{
+        width:96px;height:96px;margin:0 auto 20px;border-radius:50%;border:1px solid rgba(52,211,153,.25);
+        display:grid;place-items:center;font-size:34px;position:relative;
+        background:radial-gradient(circle,rgba(52,211,153,.13),transparent 70%);
+        box-shadow:0 0 44px rgba(52,211,153,.12) inset;
+    }
+    .empty .radar::after{content:'';position:absolute;inset:-10px;border-radius:50%;border:1px dashed rgba(52,211,153,.16)}
+    .empty h3{font-size:14px;margin-bottom:9px}
+    .empty p{font-size:11.5px;color:var(--faint);line-height:1.9;margin-bottom:22px}
+    .layers{display:grid;gap:7px;text-align:left}
+    .layer{
+        display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;
+        background:rgba(255,255,255,.028);border:1px solid var(--line);font-size:11px;color:var(--dim);
+    }
+    .layer b{font-family:var(--mono);font-size:10px;color:var(--mint);width:24px}
+    .layer span{margin-left:auto;font-size:10px;color:var(--faint)}
+
+    .score-row{display:flex;align-items:center;gap:18px;padding:18px 17px 6px}
+    .ring{position:relative;flex:0 0 96px;height:96px}
+    .ring svg{transform:rotate(-90deg)}
+    .ring .val{
+        position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;
+    }
+    .ring .val small{font-size:9.5px;color:var(--faint);margin-top:5px;font-family:inherit;letter-spacing:1px}
+    .score-meta{min-width:0;flex:1}
+    .score-meta .tag{font-size:10px;letter-spacing:1.6px;color:var(--faint)}
+    .score-meta h3{font-size:15px;margin:7px 0 8px;line-height:1.45}
+    .score-meta p{font-size:11px;color:var(--dim);line-height:1.7}
+
+    /* 四层证据流水线 */
+    .pipeline{display:flex;align-items:stretch;gap:0;padding:14px 17px 6px}
+    .stage{flex:1;text-align:center;position:relative}
+    .stage:not(:last-child)::after{
+        content:'';position:absolute;top:13px;left:60%;width:80%;height:1px;
+        background:linear-gradient(90deg,rgba(255,255,255,.16),rgba(255,255,255,.05));z-index:0;
+    }
+    .stage .bubble{
+        width:27px;height:27px;border-radius:50%;margin:0 auto 7px;display:grid;place-items:center;
+        font-size:11px;font-family:var(--mono);position:relative;z-index:1;
+        background:#0c1723;border:1px solid var(--line);color:var(--faint);
+    }
+    .stage.ok .bubble{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.5);color:var(--mint);box-shadow:0 0 14px rgba(52,211,153,.2)}
+    .stage.bad .bubble{background:rgba(251,113,133,.14);border-color:rgba(251,113,133,.5);color:var(--rose);box-shadow:0 0 14px rgba(251,113,133,.2)}
+    .stage.skip .bubble{background:rgba(251,191,36,.09);border-color:rgba(251,191,36,.35);color:var(--amber)}
+    .stage b{display:block;font-size:10.5px;font-weight:600;color:var(--dim)}
+    .stage small{display:block;font-size:9.5px;color:var(--faint);margin-top:3px}
+
+    .sec{padding:14px 17px;border-top:1px solid var(--line)}
+    .sec h4{font-size:10.5px;letter-spacing:1.5px;color:var(--faint);font-weight:600;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+    .sec h4 .count{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--mint);letter-spacing:0}
+    .ai-card{
+        padding:12px 13px;border-radius:12px;font-size:12px;line-height:1.85;color:rgba(231,238,248,.9);
+        background:linear-gradient(135deg,rgba(167,139,250,.1),rgba(34,211,238,.05));
+        border:1px solid rgba(167,139,250,.22);
+    }
+    .ai-card .label{font-size:10px;letter-spacing:1.4px;color:var(--violet);display:block;margin-bottom:7px}
+    .ai-card ol{margin:9px 0 0 17px;color:var(--dim);font-size:11.5px;line-height:1.9}
+    .ai-note{font-size:11px;color:var(--amber);background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);padding:10px 12px;border-radius:10px;line-height:1.7}
+
+    .issue{
+        border:1px solid var(--line);border-radius:12px;margin-bottom:9px;overflow:hidden;
+        background:rgba(255,255,255,.022);transition:.2s;
+    }
+    .issue:hover{border-color:rgba(255,255,255,.18)}
+    .issue-hd{display:flex;align-items:flex-start;gap:9px;padding:10px 11px;cursor:pointer}
+    .sev{width:5px;align-self:stretch;border-radius:99px;flex:0 0 5px}
+    .sev.high{background:var(--rose);box-shadow:0 0 9px rgba(251,113,133,.5)}
+    .sev.medium{background:var(--amber)}
+    .sev.low{background:var(--cyan)}
+    .issue-hd .body{min-width:0;flex:1}
+    .issue-hd .t{font-size:12px;font-weight:600;line-height:1.5}
+    .issue-hd .m{font-size:10px;color:var(--faint);margin-top:4px;font-family:var(--mono)}
+    .pill{font-size:9.5px;padding:2px 7px;border-radius:99px;border:1px solid var(--line);color:var(--dim);white-space:nowrap}
+    .issue-bd{display:none;padding:0 12px 12px 25px;font-size:11.5px;line-height:1.85;color:var(--dim)}
+    .issue.open .issue-bd{display:block}
+    .issue-bd .why{margin-bottom:8px}
+    .issue-bd .sug{color:rgba(52,211,153,.9);background:rgba(52,211,153,.06);border-left:2px solid rgba(52,211,153,.5);padding:8px 10px;border-radius:0 8px 8px 0}
+    .issue-bd .hint{margin-top:8px;font-family:var(--mono);font-size:10.5px;color:var(--amber);word-break:break-all}
+    .src{font-size:9.5px;padding:1px 6px;border-radius:5px;background:rgba(255,255,255,.05);color:var(--faint);margin-left:6px}
+
+    .chips{display:flex;flex-wrap:wrap;gap:6px}
+    .chip{font-size:10.5px;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--dim)}
+    .chip.mint{color:rgba(52,211,153,.9);border-color:rgba(52,211,153,.24);background:rgba(52,211,153,.07)}
+    .chip.violet{color:rgba(167,139,250,.95);border-color:rgba(167,139,250,.24);background:rgba(167,139,250,.07)}
+    .plain-list{font-size:11.5px;color:var(--dim);line-height:1.9;padding-left:17px}
+    pre.out{
+        font-family:var(--mono);font-size:10.5px;line-height:1.7;color:rgba(203,213,225,.82);
+        background:rgba(2,7,14,.7);border:1px solid var(--line);border-radius:9px;
+        padding:10px 11px;max-height:150px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:8px;
+    }
+    .out-label{font-size:10px;color:var(--faint);margin:9px 0 5px;letter-spacing:.6px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;padding:14px 17px;border-top:1px solid var(--line)}
+    .act{
+        flex:1;min-width:110px;padding:10px 8px;border-radius:10px;font-size:11.5px;font-weight:600;
+        border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--dim);transition:.2s;
+    }
+    .act:hover{color:#fff;border-color:rgba(52,211,153,.42);background:rgba(52,211,153,.09)}
+    .act.primary{color:#04140f;background:linear-gradient(120deg,#34d399,#22d3ee);border:none}
+
+    /* 加载遮罩 */
+    .loading{
+        display:none;position:fixed;inset:0;z-index:60;place-items:center;
+        background:rgba(4,9,17,.78);backdrop-filter:blur(8px);
+    }
+    .loading.show{display:grid}
+    .loadbox{text-align:center;width:min(420px,86vw)}
+    .scan{
+        height:3px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden;margin:0 auto 26px;position:relative;
+    }
+    .scan::after{content:'';position:absolute;top:0;left:-40%;width:40%;height:100%;background:linear-gradient(90deg,transparent,var(--mint),var(--cyan),transparent);animation:move 1.25s linear infinite}
+    @keyframes move{to{left:110%}}
+    .loadbox h3{font-size:15px;letter-spacing:.6px;margin-bottom:9px}
+    .loadbox p{font-size:11.5px;color:var(--dim);line-height:1.8;min-height:20px}
+    .loadsteps{display:flex;justify-content:center;gap:7px;margin-top:22px;flex-wrap:wrap}
+    .loadsteps span{font-size:10px;padding:5px 9px;border-radius:7px;border:1px solid var(--line);color:var(--faint)}
+    .loadsteps span.done{color:var(--mint);border-color:rgba(52,211,153,.35)}
+    .toast{
+        position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);
+        background:rgba(13,24,36,.96);border:1px solid rgba(52,211,153,.35);color:#dff7ec;
+        padding:11px 20px;border-radius:11px;font-size:12px;z-index:80;opacity:0;pointer-events:none;transition:.28s;
+        box-shadow:0 14px 40px rgba(0,0,0,.45);
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .envtip{
+        display:none;width:calc(100% - 44px);max-width:1856px;margin:14px auto -4px;padding:12px 18px;border-radius:12px;
+        font-size:11.5px;line-height:1.85;color:rgba(251,191,36,.9);
+        background:rgba(251,191,36,.065);border:1px solid rgba(251,191,36,.22);
+    }
+    .envtip.show{display:block}
+    .envtip b{color:var(--amber)}
+    .envtip code{font-family:var(--mono);font-size:10.5px;background:rgba(0,0,0,.32);padding:1px 5px;border-radius:4px;color:#e7eef8}
+</style>
+</head>
+<body>
+
+<div class="top">
+    <a class="back" href="index.html">← 返回助手</a>
+    <div class="brand">
+        <div class="brand-mark">🧬</div>
+        <div>
+            <h1>C 代码体检舱</h1>
+            <p>UPLOAD · COMPILE · SANITIZE · DIAGNOSE</p>
+        </div>
+    </div>
+    <div class="env-lamps">
+        <div class="lamp" id="lampGcc"><i class="dot"></i>本机编译器</div>
+        <div class="lamp" id="lampSan"><i class="dot"></i>内存检测</div>
+        <div class="lamp" id="lampAI"><i class="dot"></i>AI 教练</div>
+    </div>
+</div>
+
+<div class="envtip" id="envTip">
+    <b>⚠ 未检测到本机 C 编译器</b> —— 现在仍可用 <b>L4 静态风险规则（十余条 C 专属规则）</b> 与 AI 教练，但真实编译、运行、段错误与 Sanitizer 内存检测会被跳过。<br>
+    想启用完整四层证据：安装 <b>MinGW-w64</b>（推荐 MSYS2：装好后执行 <code>pacman -S mingw-w64-x86_64-gcc</code>，并把 <code>C:\msys64\mingw64\bin</code> 加入 PATH），也可安装 Dev-C++ / TDM-GCC；若编译器不在 PATH，可在启动服务前设置环境变量 <code>C_GCC=gcc.exe 的绝对路径</code>。改完重启 3001 服务即可自动识别。
+</div>
+
+<div class="wrap">
+
+    <!-- ===== 左：输入配置 ===== -->
+    <section class="panel">
+        <div class="panel-hd"><h2>01 / 提交代码</h2><span class="sub">SOURCE &amp; TASK</span></div>
+        <div class="panel-bd">
+            <div class="drop" id="dropZone">
+                <span class="ico">📥</span>
+                <b>拖入你的 .c 文件</b>
+                <small>或点击选择文件 · 支持 .c / .h / .cpp / .txt<br>也可以直接在中间编辑区粘贴代码</small>
+                <input type="file" id="fileInput" accept=".c,.h,.cpp,.cc,.txt,.md">
+            </div>
+            <div class="filechip" id="fileChip"><span id="fileName"></span><button id="clearFile" title="移除">✕</button></div>
+
+            <div class="field">
+                <label>载入示例 <em>（挑一段有坑的 C 代码试试）</em></label>
+                <select id="sampleSelect">
+                    <option value="">— 选择示例 —</option>
+                    <option value="oob">示例 A · 数组越界 + 循环边界</option>
+                    <option value="scanf">示例 B · scanf 漏写 &amp; + 浮点数判等</option>
+                    <option value="mem">示例 C · 内存泄漏 + 使用已释放内存</option>
+                    <option value="syntax">示例 D · 中文分号 + if 里写 =</option>
+                    <option value="good">示例 E · 一份写得不错的代码</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label>这段代码要解决什么问题？ <em>选填</em></label>
+                <textarea id="taskGoal" rows="2" placeholder="例如：输入 n，求 1 到 n 的累加和并输出"></textarea>
+                <small>写清楚目标，AI 教练才不会只盯着语法挑刺。</small>
+            </div>
+            <div class="field">
+                <label>测试输入 stdin <em>选填</em></label>
+                <textarea id="stdin" rows="2" placeholder="例如：5"></textarea>
+            </div>
+            <div class="field">
+                <label>期望输出 <em>选填，填了就自动判题</em></label>
+                <textarea id="expectedStdout" rows="2" placeholder="例如：15"></textarea>
+                <small>系统会真实运行你的程序并逐行比对，不靠大模型猜。</small>
+            </div>
+
+            <div class="switches">
+                <div class="sw on" id="swAI"><i></i>AI 教练</div>
+                <div class="sw on" id="swSan"><i></i>内存检测</div>
+            </div>
+
+            <button class="run-btn" id="analyzeBtn">⚡ 开始体检</button>
+            <div class="privacy"><span>🔒</span><span>代码仅在本机临时目录编译执行，带 2 秒超时与进程树终止；不会发往云端，也不会写入项目目录。</span></div>
+
+            <div class="history">
+                <h3>最近体检 · 看得到进步</h3>
+                <div id="historyBox"><div class="hist-empty">还没有体检记录，提交第一段代码吧。</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== 中：代码编辑器 ===== -->
+    <section class="panel panel-code">
+        <div class="panel-hd">
+            <h2>02 / 源码</h2>
+            <div style="display:flex;gap:7px;align-items:center">
+                <span class="sub" id="codeFileName">未命名.c</span>
+                <button class="mini-btn" id="formatBtn">整理缩进</button>
+                <button class="mini-btn" id="clearBtn">清空</button>
+            </div>
+        </div>
+        <div class="editor">
+            <div class="gutter" id="lineNums">1</div>
+            <textarea id="codeInput" spellcheck="false" placeholder="// 在这里粘贴你的 C 代码，或上传 .c 文件&#10;// 例如：&#10;#include <stdio.h>&#10;int main(void){&#10;    printf("hello");&#10;    return 0;&#10;}"></textarea>
+        </div>
+        <div class="editor-ft">
+            <span>行数 <b id="statLines">1</b></span>
+            <span>字符 <b id="statChars">0</b></span>
+            <span>C 标准 <b>C11</b></span>
+            <span>编译参数 <b>-Wall -Wextra</b></span>
+            <span style="margin-left:auto">点击右侧问题可跳到对应代码行 ↗</span>
+        </div>
+    </section>
+
+    <!-- ===== 右：体检报告 ===== -->
+    <section class="panel">
+        <div class="panel-hd"><h2>03 / 体检报告</h2><span class="sub">EVIDENCE REPORT</span></div>
+
+        <div class="empty" id="emptyState">
+            <div class="radar">⌁</div>
+            <h3>不是「让 AI 看一眼代码」</h3>
+            <p>先把你的程序真编译、真运行，再交给教练解读证据。<br>下面四层全部是 C 语言特有的问题域。</p>
+            <div class="layers">
+                <div class="layer"><b>L1</b><span>gcc 编译诊断</span><span>语法 · 类型 · 警告</span></div>
+                <div class="layer"><b>L2</b><span>真实运行 + 用例</span><span>stdout · 段错误</span></div>
+                <div class="layer"><b>L3</b><span>Sanitizer 检测</span><span>越界 · 悬垂 · UB</span></div>
+                <div class="layer"><b>L4</b><span>静态风险规则</span><span>十余条 C 专属规则</span></div>
+            </div>
+        </div>
+
+        <div id="reportBody" style="display:none">
+            <div class="score-row">
+                <div class="ring">
+                    <svg width="96" height="96" viewBox="0 0 96 96">
+                        <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="8"/>
+                        <circle id="ringArc" cx="48" cy="48" r="40" fill="none" stroke="#34d399" stroke-width="8"
+                                stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"
+                                style="transition:stroke-dashoffset 1s ease"/>
+                    </svg>
+                    <div class="val"><span id="scoreVal">0</span><small>SCORE</small></div>
+                </div>
+                <div class="score-meta">
+                    <div class="tag">OBJECTIVE SCORE · 客观评分</div>
+                    <h3 id="verdictText">—</h3>
+                    <p id="scoreDesc">分数完全由编译结果、运行状态、内存检测与静态规则计算，可复现、不受模型发挥影响。</p>
+                </div>
+            </div>
+
+            <div class="pipeline" id="pipeline"></div>
+
+            <div class="sec" id="aiSection">
+                <h4>AI 教练结论 <span class="count">TUTOR</span></h4>
+                <div id="aiBox"></div>
+            </div>
+
+            <div class="sec">
+                <h4>问题清单 <span class="count" id="issueCount">0</span></h4>
+                <div id="issueList"></div>
+            </div>
+
+            <div class="sec" id="rawSection">
+                <h4>原始证据 <span class="count">RAW</span></h4>
+                <div id="rawBox"></div>
+            </div>
+
+            <div class="sec" id="extraSection" style="display:none">
+                <h4>优点与下一步 <span class="count">NEXT</span></h4>
+                <div id="extraBox"></div>
+            </div>
+
+            <div class="actions">
+                <button class="act primary" id="addBankBtn">＋ 收进错题本</button>
+                <button class="act" id="exportBtn">⬇ 导出报告</button>
+                <button class="act" id="copyBtn">⧉ 复制结论</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="loading" id="loading">
+    <div class="loadbox">
+        <div class="scan"></div>
+        <h3 id="loadTitle">正在体检你的 C 代码</h3>
+        <p id="loadText">调用本机编译器…</p>
+        <div class="loadsteps">
+            <span id="st1">L1 编译</span><span id="st2">L2 运行</span><span id="st3">L3 内存</span><span id="st4">L4 规则</span><span id="st5">AI 教练</span>
+        </div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================================================================
+   C 代码体检舱 · 前端逻辑
+   后端接口：/api/code/env | /api/code/upload | /api/code/analyze
+   ================================================================== */
+const API = 'http://localhost:3001';
+const $ = id => document.getElementById(id);
+let lastReport = null;      // 最近一次完整结果，供导出 / 收进错题本
+let loadTimer = null;
+
+function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toast(msg){
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ---------- 示例代码（全部是 C 语言真实会踩的坑） ---------- */
+const SAMPLES = {
+oob:{ name:'sum_oob.c', goal:'输入 n，求数组 5 个元素的和并输出', stdin:'', expected:'15',
+code:`#include <stdio.h>
+
+int main(void) {
+    int a[5] = {1, 2, 3, 4, 5};
+    int sum = 0;
+    for (int i = 0; i <= 5; i++) {
+        sum += a[i];
+    }
+    printf("%d\\n", sum);
+    return 0;
+}`},
+scanf:{ name:'read_float.c', goal:'读入一个整数 n 与一个小数 x，输出它们的乘积', stdin:'3 0.5', expected:'',
+code:`#include <stdio.h>
+
+int main(void) {
+    int n;
+    double x = 0.5;
+    scanf("%d", n);
+    if (x == 0.5) {
+        n = n * 2;
+    }
+    printf("%d\\n", n);
+    return 0;
+}`},
+mem:{ name:'leak_uaf.c', goal:'动态申请数组并输出第 3 个元素', stdin:'', expected:'',
+code:`#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *p = (int*)malloc(5 * sizeof(int));
+    for (int i = 0; i < 5; i++) p[i] = i * 10;
+    free(p);
+    printf("%d\\n", p[2]);
+    return 0;
+}`},
+syntax:{ name:'typo.c', goal:'判断成绩是否及格并输出结果', stdin:'', expected:'',
+code:`#include <stdio.h>
+
+int main(void) {
+    int score = 75；
+    if (score = 60) {
+        printf("及格\\n")；
+    }
+    return 0;
+}`},
+good:{ name:'reverse.c', goal:'输入 5 个整数，倒序输出', stdin:'1 2 3 4 5', expected:'5 4 3 2 1',
+code:`#include <stdio.h>
+
+int main(void) {
+    int a[5];
+    for (int i = 0; i < 5; i++) {
+        if (scanf("%d", &a[i]) != 1) return 1;
+    }
+    for (int i = 4; i >= 0; i--) {
+        printf("%d%s", a[i], i == 0 ? "\\n" : " ");
+    }
+    return 0;
+}`}
+};
+
+/* ---------- 编辑器：行号 / 统计 / 定位 ---------- */
+function syncEditor(){
+    const ta = $('codeInput');
+    const n = ta.value.split('\n').length;
+    let html = '';
+    for (let i = 1; i <= n; i++) html += i + '\n';
+    $('lineNums').textContent = html;
+    $('statLines').textContent = n;
+    $('statChars').textContent = ta.value.length;
+    $('lineNums').scrollTop = ta.scrollTop;
+}
+$('codeInput').addEventListener('input', syncEditor);
+$('codeInput').addEventListener('scroll', ()=>{ $('lineNums').scrollTop = $('codeInput').scrollTop; });
+$('codeInput').addEventListener('keydown', e => {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        const ta = e.target, s = ta.selectionStart, t = ta.selectionEnd;
+        ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(t);
+        ta.selectionStart = ta.selectionEnd = s + 4;
+        syncEditor();
+    }
+});
+$('clearBtn').onclick = ()=>{ $('codeInput').value=''; $('codeFileName').textContent='未命名.c'; syncEditor(); $('codeInput').focus(); };
+$('formatBtn').onclick = ()=>{
+    const ta = $('codeInput');
+    const lines = ta.value.split('\n');
+    let depth = 0;
+    ta.value = lines.map(raw => {
+        const l = raw.trim();
+        if (!l) return '';
+        if (l[0] === '}') depth = Math.max(0, depth - 1);
+        const out = '    '.repeat(depth) + l;
+        const opens = (l.match(/\{/g)||[]).length, closes = (l.match(/\}/g)||[]).length;
+        depth = Math.max(0, depth + opens - closes - (l[0] === '}' ? 1 : 0));
+        return out;
+    }).join('\n');
+    syncEditor(); toast('缩进已整理（简易版，仅处理大括号层级）');
+};
+
+function jumpToLine(n){
+    const ta = $('codeInput');
+    const lines = ta.value.split('\n');
+    const idx = Math.min(Math.max(1, Number(n)||1), lines.length);
+    let start = 0;
+    for (let i = 0; i < idx - 1; i++) start += lines[i].length + 1;
+    const end = start + lines[idx-1].length;
+    ta.focus();
+    ta.setSelectionRange(start, end);
+    ta.scrollTop = Math.max(0, (idx - 6) * 21);
+    $('lineNums').scrollTop = ta.scrollTop;
+}
+
+/* ---------- 文件上传（后端优先，失败降级本地读取） ---------- */
+function setCode(code, name){
+    $('codeInput').value = String(code).replace(/^\uFEFF/, '').slice(0, 20000);
+    $('codeFileName').textContent = name || '未命名.c';
+    $('fileName').textContent = name || '未命名.c';
+    $('fileChip').classList.add('show');
+    syncEditor();
+}
+$('dropZone').onclick = ()=> $('fileInput').click();
+$('fileInput').onchange = e => { if (e.target.files[0]) uploadFile(e.target.files[0]); e.target.value=''; };
+['dragenter','dragover'].forEach(ev => $('dropZone').addEventListener(ev, e => { e.preventDefault(); $('dropZone').classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => $('dropZone').addEventListener(ev, e => { e.preventDefault(); $('dropZone').classList.remove('drag'); }));
+$('dropZone').addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) uploadFile(f); });
+$('clearFile').onclick = e => { e.stopPropagation(); $('fileChip').classList.remove('show'); $('codeFileName').textContent='未命名.c'; };
+
+async function uploadFile(file){
+    try {
+        const fd = new FormData(); fd.append('file', file);
+        const r = await fetch(API + '/api/code/upload', { method:'POST', body:fd });
+        if (!r.ok) throw new Error((await r.json().catch(()=>({}))).error || '上传失败');
+        const j = await r.json();
+        setCode(j.code, j.filename);
+        toast(j.truncated ? '文件较大，已截取前 20000 字符' : '已载入 ' + j.filename);
+    } catch (err) {
+        // 后端没起时仍然可以本地读文件
+        try {
+            const text = await file.text();
+            setCode(text, file.name);
+            toast('已本地读取（后端上传不可用）');
+        } catch (e2) { toast('读取文件失败：' + err.message); }
+    }
+}
+$('sampleSelect').onchange = e => {
+    const s = SAMPLES[e.target.value];
+    if (!s) return;
+    setCode(s.code, s.name);
+    $('taskGoal').value = s.goal;
+    $('stdin').value = s.stdin;
+    $('expectedStdout').value = s.expected;
+    toast('已载入 ' + s.name + '，可直接点「开始体检」');
+};
+
+/* ---------- 开关 ---------- */
+function bindSwitch(id, init){
+    let on = init; const el = $(id);
+    const paint = ()=> el.classList.toggle('on', on);
+    el.onclick = ()=>{ on = !on; paint(); };
+    paint();
+    return ()=> on;
+}
+const aiOn = bindSwitch('swAI', true);
+const sanOn = bindSwitch('swSan', true);
+
+/* ---------- 环境灯 ---------- */
+async function loadEnv(){
+    try {
+        const r = await fetch(API + '/api/code/env');
+        const j = await r.json();
+        const set = (id, ok) => { $(id).classList.remove('on','off'); $(id).classList.add(ok ? 'on' : 'off'); };
+        set('lampGcc', j.gcc); set('lampSan', j.gcc && j.sanitizer); set('lampAI', j.ollama);
+        $('lampGcc').title = j.compiler || '未检测到 gcc / clang，编译验证将关闭（静态扫描仍可用）';
+        $('envTip').classList.toggle('show', !j.gcc);
+    } catch(e){
+        ['lampGcc','lampSan','lampAI'].forEach(id=>$(id).classList.add('off'));
+        $('envTip').classList.add('show');
+    }
+}
+loadEnv();
+
+/* ---------- 体检主流程 ---------- */
+const LOAD_STEPS = [
+    '正在用 gcc -Wall -Wextra 编译你的代码…',
+    '编译完成，正在带 stdin 真实运行…',
+    '正在用 AddressSanitizer / UBSan 复查内存…',
+    '正在跑十余条 C 专属静态风险规则…',
+    '证据齐了，正在生成体检报告…（AI 教练会在报告出来后自动补上）'
+];
+function startLoading(){
+    $('loading').classList.add('show');
+    let i = 0;
+    $('loadText').textContent = LOAD_STEPS[0];
+    ['st1','st2','st3','st4','st5'].forEach(id=>$(id).classList.remove('done'));
+    loadTimer = setInterval(()=>{
+        i = Math.min(i+1, LOAD_STEPS.length-1);
+        $('loadText').textContent = LOAD_STEPS[i];
+        for (let k=0;k<i;k++) $('st'+(k+1)).classList.add('done');
+    }, 1800);
+}
+function stopLoading(){
+    clearInterval(loadTimer);
+    ['st1','st2','st3','st4','st5'].forEach(id=>$(id).classList.add('done'));
+    setTimeout(()=>$('loading').classList.remove('show'), 380);
+}
+
+$('analyzeBtn').onclick = async () => {
+    const code = $('codeInput').value.trim();
+    if (!code){ toast('请先上传或粘贴 C 代码'); $('codeInput').focus(); return; }
+    const btn = $('analyzeBtn'); btn.disabled = true; btn.textContent = '体检中…';
+    startLoading();
+    const ctl = new AbortController();
+    const guard = setTimeout(()=>ctl.abort(), 60000);
+    try {
+        const r = await fetch(API + '/api/code/analyze', {
+            method:'POST', headers:{'Content-Type':'application/json'}, signal:ctl.signal,
+            body: JSON.stringify({
+                code,
+                stdin: $('stdin').value,
+                taskGoal: $('taskGoal').value,
+                expectedStdout: $('expectedStdout').value,
+                useAI: aiOn(),
+                useSanitizer: sanOn()
+            })
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || '体检失败');
+        lastReport = { ...j, code, filename: $('codeFileName').textContent };
+        renderReport(lastReport);
+        saveHistory(lastReport);
+        toast('体检完成 · ' + j.evidence.verdict);
+        requestCoach(lastReport);   // 不 await：客观报告已可见，AI 结论后台补上
+    } catch(e){
+        toast(e.name === 'AbortError' ? '体检超时，请检查后端是否启动' : ('体检失败：' + e.message));
+    } finally {
+        clearTimeout(guard); stopLoading(); btn.disabled = false; btn.textContent = '⚡ 开始体检';
+    }
+};
+
+/* ---------- 报告渲染 ---------- */
+function bindIssueToggles(root){
+    (root||document).querySelectorAll('.issue-hd').forEach(hd=>{
+        hd.onclick = () => {
+            hd.parentElement.classList.toggle('open');
+            const n = Number(hd.dataset.line||0);
+            if (n > 0) jumpToLine(n);
+        };
+    });
+}
+
+/* AI 教练单独渲染：客观报告先出，模型结论稍后补上 */
+function renderAi(rep){
+    const ai = rep.ai;
+    if (ai) {
+        let h = `<div class="ai-card"><span class="label">✦ COACH · 只给提示，不给完整答案</span>${escapeHtml(ai.summary||'')}`;
+        if (ai.priority && ai.priority.length) {
+            h += `<ol>` + ai.priority.map(p=>`<li>${escapeHtml(p)}</li>`).join('') + `</ol>`;
+        }
+        h += `</div>`;
+        if (ai.issues && ai.issues.length) {
+            h += `<div style="margin-top:9px">` + ai.issues.slice(0,5).map(i=>
+                `<div class="issue"><div class="issue-hd" data-line="${Number(i.line)||0}">
+                    <i class="sev ${i.severity==='high'?'high':i.severity==='low'?'low':'medium'}"></i>
+                    <div class="body"><div class="t">${escapeHtml(i.category||'诊断')} · ${escapeHtml((i.why||'').slice(0,80))}</div>
+                    <div class="m">${i.line?('第 '+i.line+' 行 · '):''}AI 教练 · 点击查看建议</div></div>
+                    <span class="pill">教练</span></div>
+                    <div class="issue-bd"><div class="why">${escapeHtml(i.why||'')}</div>
+                    <div class="sug">✎ ${escapeHtml(i.suggestion||'')}</div>
+                    ${i.fixHint?`<div class="hint">最小提示：${escapeHtml(i.fixHint)}</div>`:''}</div>
+                </div>`).join('') + `</div>`;
+        }
+        $('aiBox').innerHTML = h;
+    } else if (rep.coachPending) {
+        $('aiBox').innerHTML = `<div class="ai-note" style="color:rgba(167,139,250,.95);border-color:rgba(167,139,250,.25);background:rgba(167,139,250,.07)">✦ AI 教练正在阅读四层证据…<br><span style="color:var(--faint)">客观报告已经可用，模型结论稍后自动补上，不影响你现在查看问题清单。</span></div>`;
+    } else {
+        $('aiBox').innerHTML = `<div class="ai-note">⚠ ${escapeHtml(rep.aiNote||'AI 教练不可用')}<br>下面的「问题清单」来自编译器、Sanitizer 与静态规则的客观结果，不受影响。</div>`;
+    }
+
+    if (ai && ((ai.strengths||[]).length || (ai.nextSteps||[]).length || (ai.knowledgePoints||[]).length)) {
+        $('extraSection').style.display = 'block';
+        let h = '';
+        if ((ai.strengths||[]).length) h += `<div class="out-label">做得好的地方</div><div class="chips">${ai.strengths.map(s=>`<span class="chip mint">✓ ${escapeHtml(s)}</span>`).join('')}</div>`;
+        if ((ai.knowledgePoints||[]).length) h += `<div class="out-label">涉及知识点</div><div class="chips">${ai.knowledgePoints.map(s=>`<span class="chip violet">${escapeHtml(s)}</span>`).join('')}</div>`;
+        if ((ai.nextSteps||[]).length) h += `<div class="out-label">下一步练什么</div><ol class="plain-list">${ai.nextSteps.map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ol>`;
+        $('extraBox').innerHTML = h;
+    } else $('extraSection').style.display = 'none';
+
+    bindIssueToggles($('aiBox'));
+}
+
+/* 第二步：异步取 AI 教练结论。失败只影响这一张卡片，不动客观报告 */
+async function requestCoach(rep){
+    if (!rep || !rep.coachPending) return;
+    const ctl = new AbortController();
+    const guard = setTimeout(()=>ctl.abort(), 60000);
+    try {
+        const r = await fetch(API + '/api/code/coach', {
+            method:'POST', headers:{'Content-Type':'application/json'}, signal:ctl.signal,
+            body: JSON.stringify({ code: rep.code, evidence: rep.evidence })
+        });
+        const j = await r.json();
+        if (j.ok && j.ai) { rep.ai = j.ai; rep.aiNote = ''; }
+        else rep.aiNote = j.error || 'AI 教练暂不可用';
+    } catch(e){
+        rep.aiNote = e.name === 'AbortError' ? 'AI 教练响应超时（本地模型首次加载较慢）' : ('AI 教练暂不可用：' + e.message);
+    } finally {
+        clearTimeout(guard);
+        rep.coachPending = false;
+        if (lastReport === rep) renderAi(rep);
+    }
+}
+
+function stage(label, state, note){
+    return `<div class="stage ${state}"><div class="bubble">${state==='ok'?'✓':state==='bad'?'!':'–'}</div><b>${label}</b><small>${escapeHtml(note)}</small></div>`;
+}
+function collectIssues(ev){
+    const out = [];
+    (ev.compile.errors||[]).forEach(d=>out.push({
+        line:d.line, severity:'high', category:'语法与编译', title:d.zh,
+        why:'gcc 编译错误：' + d.raw, suggestion:d.hint, source:'gcc 编译', hint:'定位到第 '+d.line+' 行，按报错改这一个符号'
+    }));
+    (ev.compile.warnings||[]).forEach(d=>out.push({
+        line:d.line, severity:'medium', category:'编译警告', title:d.zh,
+        why:'gcc 警告：' + d.raw, suggestion:d.hint, source:'gcc 警告', hint:'警告也常是真 bug，别忽略'
+    }));
+    (ev.sanitizer.findings||[]).forEach(f=>out.push({
+        line:0, severity:'high', category:f.category, title:f.title, why:f.why,
+        suggestion:f.suggestion, source:'Sanitizer 实测', hint:'内存检测是真实跑出来的，不是猜的'
+    }));
+    (ev.static.issues||[]).forEach(i=>out.push({
+        line:i.line, severity:i.severity, category:i.category, title:i.title, why:i.why,
+        suggestion:i.suggestion, source:'静态规则', hint:'按 C 语言机制检查这一行'
+    }));
+    const rank = {high:0, medium:1, low:2};
+    const seen = new Set();
+    return out.filter(i=>{
+        const k = i.line + '|' + i.title;
+        if (seen.has(k)) return false; seen.add(k); return true;
+    }).sort((a,b)=> (rank[a.severity]-rank[b.severity]) || (a.line-b.line));
+}
+
+function renderReport(rep){
+    const ev = rep.evidence;
+    $('emptyState').style.display = 'none';
+    $('reportBody').style.display = 'block';
+
+    // 评分环
+    const C = 251.3;
+    $('ringArc').setAttribute('stroke-dashoffset', String(C - C * ev.score / 100));
+    const color = ev.score >= 85 ? '#34d399' : ev.score >= 60 ? '#fbbf24' : '#fb7185';
+    $('ringArc').setAttribute('stroke', color);
+    $('scoreVal').textContent = ev.score;
+    $('scoreVal').style.color = color;
+    $('verdictText').textContent = ev.verdict;
+    $('scoreDesc').textContent = ev.env.gcc
+        ? `编译 ${ev.compile.errors.length} 错误 / ${ev.compile.warnings.length} 警告 · 静态风险 ${ev.static.issues.length} 项 · 内存问题 ${ev.sanitizer.findings.length} 项。分数由客观证据计算，可复现。`
+        : '未检测到本机编译器，本次仅做静态扫描与 AI 诊断；安装 MinGW-w64 后可启用真实编译、运行与内存检测。';
+
+    // 四层流水线
+    const s1 = !ev.env.gcc ? 'skip' : (ev.compile.ok ? 'ok' : 'bad');
+    const s2 = !ev.run ? 'skip' : (ev.run.crashed ? 'bad' : 'ok');
+    const s3 = !ev.sanitizer.enabled ? 'skip' : (ev.sanitizer.findings.length ? 'bad' : 'ok');
+    const s4 = !ev.test.enabled ? 'skip' : (ev.test.passed ? 'ok' : 'bad');
+    $('pipeline').innerHTML =
+        stage('编译', s1, ev.env.gcc ? (ev.compile.ok?'通过':'有错误') : '未启用') +
+        stage('运行', s2, ev.run ? (ev.run.crashed?'崩溃':'正常') : '未执行') +
+        stage('内存', s3, ev.sanitizer.enabled ? (ev.sanitizer.findings.length?ev.sanitizer.findings.length+' 项':'干净') : (ev.sanitizer.note||'跳过')) +
+        stage('用例', s4, ev.test.enabled ? (ev.test.passed?'通过':'不符') : '未设置');
+
+    renderAi(rep);
+
+    // 问题清单
+    const issues = collectIssues(ev);
+    $('issueCount').textContent = issues.length + ' 项';
+    $('issueList').innerHTML = issues.length ? issues.map((i,idx)=>`
+        <div class="issue" data-idx="${idx}">
+            <div class="issue-hd" data-line="${i.line}">
+                <i class="sev ${i.severity}"></i>
+                <div class="body">
+                    <div class="t">${escapeHtml(i.title)}</div>
+                    <div class="m">${i.line?('第 '+i.line+' 行 · '):''}${escapeHtml(i.category)}<span class="src">${escapeHtml(i.source)}</span></div>
+                </div>
+                <span class="pill">${i.severity==='high'?'高风险':i.severity==='medium'?'注意':'提示'}</span>
+            </div>
+            <div class="issue-bd">
+                <div class="why"><b>为什么：</b>${escapeHtml(i.why)}</div>
+                <div class="sug"><b>怎么改：</b>${escapeHtml(i.suggestion)}</div>
+                <div class="hint">💡 ${escapeHtml(i.hint)}</div>
+            </div>
+        </div>`).join('') : `<div class="hist-empty" style="padding:14px 0">✓ 四层证据都没有发现问题。可以试着填一个「期望输出」做行为验证，或挑战更难的题。</div>`;
+
+    bindIssueToggles($('reportBody'));
+
+    // 原始证据
+    let raw = '';
+    if (ev.run && ev.run.stdout) raw += `<div class="out-label">STDOUT（真实运行输出 · 退出码 ${ev.run.exitCode} · ${ev.run.ms}ms）</div><pre class="out">${escapeHtml(ev.run.stdout)}</pre>`;
+    if (ev.run && ev.run.stderr) raw += `<div class="out-label">STDERR / 编译器诊断</div><pre class="out">${escapeHtml(ev.run.stderr.slice(0,2500))}</pre>`;
+    if (ev.compile.raw) raw += `<div class="out-label">GCC DIAGNOSTICS</div><pre class="out">${escapeHtml(ev.compile.raw)}</pre>`;
+    if (ev.sanitizer.raw) raw += `<div class="out-label">SANITIZER REPORT</div><pre class="out">${escapeHtml(ev.sanitizer.raw.slice(0,2500))}</pre>`;
+    if (ev.test.enabled) raw += `<div class="out-label">测试用例比对：${ev.test.passed?'✓ 通过':'✗ 未通过'} · ${escapeHtml(ev.test.reason)}</div>`;
+    if (!raw) raw = `<div class="hist-empty">本次没有产生原始输出${ev.compile.reason?('：'+escapeHtml(ev.compile.reason)):''}。</div>`;
+    $('rawBox').innerHTML = raw;
+
+}
+
+/* ---------- 历史记录 + 打通错题本 ---------- */
+function readLog(){ try{ return JSON.parse(localStorage.getItem('codeReviewLog_v1')||'[]'); }catch(e){ return []; } }
+function saveHistory(rep){
+    const log = readLog();
+    log.unshift({ time:Date.now(), filename:rep.filename, score:rep.evidence.score,
+                  verdict:rep.evidence.verdict, categories:rep.evidence.categories||[] });
+    localStorage.setItem('codeReviewLog_v1', JSON.stringify(log.slice(0,20)));
+    renderHistory();
+}
+function renderHistory(){
+    const log = readLog().slice(0,3);
+    $('historyBox').innerHTML = log.length ? log.map(x=>`
+        <div class="hist-row"><span>${new Date(x.time).toLocaleDateString()} ${escapeHtml(String(x.filename).slice(0,14))}</span><b>${x.score}</b></div>
+    `).join('') : `<div class="hist-empty">还没有体检记录，提交第一段代码吧。</div>`;
+}
+renderHistory();
+
+$('addBankBtn').onclick = ()=>{
+    if (!lastReport) return;
+    const ev = lastReport.evidence;
+    const cat = (ev.categories && ev.categories[0]) || '代码体检';
+    let bank = [];
+    try { bank = JSON.parse(localStorage.getItem('myQuestionBank')||'[]'); } catch(e){ bank = []; }
+    if (!Array.isArray(bank)) bank = [];
+    const issues = collectIssues(ev).slice(0,6);
+    const content = `<p>【C 代码体检】${escapeHtml(lastReport.filename)} · 客观评分 ${ev.score}/100 · ${escapeHtml(ev.verdict)}</p>`
+        + `<p><b>任务目标：</b>${escapeHtml($('taskGoal').value || '（未填写）')}</p>`
+        + (issues.length ? `<p><b>主要问题：</b></p><ul>${issues.map(i=>`<li>第 ${i.line||'?'} 行 · ${escapeHtml(i.title)}：${escapeHtml(i.suggestion)}</li>`).join('')}</ul>` : '<p>未发现明显问题，可尝试提高题目难度。</p>')
+        + `<pre style="white-space:pre-wrap;font-size:12px;background:rgba(0,0,0,.25);padding:10px;border-radius:8px;overflow:auto">${escapeHtml(lastReport.code.slice(0,1800))}</pre>`;
+    bank.unshift({
+        id:'cr_'+Date.now(), topic:cat, content,
+        level:0, rightCount:0, wrongCount:issues.length?1:0, mastered:false,
+        lastReview:Date.now(), practiceLog:[],
+        lastFeedback:{ correct:issues.length===0, weakPoints:ev.categories||[], keyPoints:ev.categories||[] },
+        source:'codeReview', score:ev.score, categories:ev.categories||[], createdAt:Date.now()
+    });
+    localStorage.setItem('myQuestionBank', JSON.stringify(bank));
+    toast('已收进错题本，复习队列可在「学习看板」查看');
+};
+
+/* ---------- 导出 / 复制 ---------- */
+function buildMarkdown(rep){
+    const ev = rep.evidence, ai = rep.ai;
+    const L = [];
+    L.push('# C 代码体检报告', '');
+    L.push(`- 文件：\`${rep.filename}\``);
+    L.push(`- 时间：${new Date().toLocaleString()}`);
+    L.push(`- 客观评分：**${ev.score}/100**`);
+    L.push(`- 结论：**${ev.verdict}**`);
+    L.push(`- 任务目标：${$('taskGoal').value||'（未填写）'}`);
+    L.push(`- 环境：编译器 ${ev.env.compiler||'未检测到'}｜Sanitizer ${ev.env.sanitizer?'已启用':'未启用'}`, '');
+    L.push('## 四层证据', '');
+    L.push(`1. **编译**：${ev.compile.ok?'通过':(ev.compile.reason||'未通过')}，错误 ${ev.compile.errors.length} 项、警告 ${ev.compile.warnings.length} 项`);
+    L.push(`2. **运行**：${ev.run?`退出码 ${ev.run.exitCode}${ev.run.crashed?'（崩溃/超时）':''}，耗时 ${ev.run.ms}ms`:'未执行'}`);
+    L.push(`3. **内存/UB**：${ev.sanitizer.enabled?(ev.sanitizer.findings.length?ev.sanitizer.findings.map(f=>f.title).join('、'):'未发现'):(ev.sanitizer.note||'跳过')}`);
+    L.push(`4. **用例比对**：${ev.test.enabled?(ev.test.passed?'通过':'未通过 · '+ev.test.reason):'未设置'}`, '');
+    const issues = collectIssues(ev);
+    L.push('## 问题清单', '');
+    if (issues.length) issues.forEach((i,n)=>L.push(`${n+1}. **[${i.severity}] 第 ${i.line||'?'} 行 · ${i.title}** (${i.source})\n   - 为什么：${i.why}\n   - 怎么改：${i.suggestion}`));
+    else L.push('未发现问题。');
+    L.push('');
+    if (ai) {
+        L.push('## AI 教练结论', '', ai.summary||'', '');
+        if ((ai.priority||[]).length) L.push('**先做这些**：', ...ai.priority.map((p,n)=>`${n+1}. ${p}`), '');
+        if ((ai.strengths||[]).length) L.push('**做得好的地方**：', ...ai.strengths.map(s=>'- '+s), '');
+        if ((ai.nextSteps||[]).length) L.push('**下一步**：', ...ai.nextSteps.map(s=>'- '+s), '');
+        if ((ai.knowledgePoints||[]).length) L.push('**知识点**：'+ai.knowledgePoints.join(' / '), '');
+    } else L.push('## AI 教练', '', rep.aiNote||'未启用', '');
+    L.push('## 学生代码', '', '```c', rep.code, '```', '');
+    if (ev.run && ev.run.stdout) L.push('## 实际输出', '', '```text', ev.run.stdout, '```', '');
+    if (ev.compile.raw) L.push('## 编译器原始诊断', '', '```text', ev.compile.raw, '```', '');
+    return L.join('\n');
+}
+$('exportBtn').onclick = ()=>{
+    if (!lastReport) return;
+    const blob = new Blob([buildMarkdown(lastReport)], {type:'text/markdown;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'C代码体检报告_' + new Date().toISOString().slice(0,10) + '.md';
+    a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+    toast('报告已导出为 Markdown');
+};
+$('copyBtn').onclick = async ()=>{
+    if (!lastReport) return;
+    const txt = buildMarkdown(lastReport);
+    try { await navigator.clipboard.writeText(txt); toast('完整报告已复制到剪贴板'); }
+    catch(e){
+        const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy'); ta.remove(); toast('完整报告已复制');
+    }
+};
+
+syncEditor();
+</script>
+</body>
+</html>
