@@ -8,6 +8,7 @@ const { PDFParse } = require('pdf-parse');
 const fs = require('fs');
 const path = require('path');
 const kb = require('./kb');
+const codeReview = require('./codeReview');   // C 代码体检引擎（独立模块，不影响原有接口）
 
 const app = express();
 const port = 3001; 
@@ -257,6 +258,9 @@ app.post('/api/ollama', async (req, res) => {
         }
     }
 });
+
+// ===== C 代码体检模块（新增路由 /api/code/*，与上面的接口互不干扰） =====
+codeReview.registerRoutes(app);
 
 app.listen(port, () => {
     console.log(`Ollama 后端服务已启动: http://localhost:${port}`);
