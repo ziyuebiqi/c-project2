@@ -627,6 +627,10 @@
                 <span class="icon">📊</span> 学习看板
                 <span class="nav-badge" id="reviewBadge">0</span>
             </div>
+            <div class="nav-btn" id="codeReviewBtn" title="上传自己的 C 代码，编译 / 运行 / 内存检测 / AI 教练四层诊断">
+                <span class="icon">🧬</span> C 代码体检
+                <span style="margin-left:auto;font-size:9px;letter-spacing:.6px;padding:2px 7px;border-radius:8px;background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.28)">NEW</span>
+            </div>
 
             <div class="session-section">
                 <div class="session-head">
@@ -956,6 +960,8 @@
         }
     }
     document.getElementById('dashboardBtn').onclick = function() { window.location.href = 'dashboard.html'; };
+    // 新增：C 代码体检舱（独立页面，不影响现有对话与出题逻辑）
+    document.getElementById('codeReviewBtn').onclick = function() { window.location.href = 'review.html'; };
     window.addEventListener('storage', updateReviewBadge);
 
     renderSessionList();
