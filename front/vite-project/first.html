@@ -304,7 +304,8 @@
         grid-template-areas:
             "g g h"
             "g g i"
-            "j j j";
+            "j j j"
+            "k k k";
     }
     .adv-card {
         position: relative; overflow: hidden;
@@ -332,6 +333,9 @@
     .adv-h { grid-area: h; --accent:#a855f7; --halo:rgba(168,85,247,.18); --halo2:rgba(168,85,247,.22); --edge:rgba(168,85,247,.4); }
     .adv-i { grid-area: i; --accent:#60a5fa; --halo:rgba(96,165,250,.16); --halo2:rgba(96,165,250,.22); --edge:rgba(96,165,250,.4); }
     .adv-j { grid-area: j; --accent:#34d399; --halo:rgba(52,211,153,.15); --halo2:rgba(52,211,153,.2);  --edge:rgba(52,211,153,.4); }
+    /* 11 号模块独占第四行：以前误用了 .adv-g，与 07 号共用 grid-area 导致整片重叠 */
+    .adv-k { grid-area: k; --accent:#2dd4bf; --halo:rgba(45,212,191,.14); --halo2:rgba(45,212,191,.2); --edge:rgba(45,212,191,.42); }
+    .adv-k .adv-desc { max-width: 940px; }
 
     .adv-num {
         position: absolute; top: 12px; right: 24px; line-height: 1;
@@ -348,6 +352,7 @@
     .adv-h .adv-icon { --ibg:rgba(168,85,247,.14); --ibd:rgba(168,85,247,.36); --iglow:rgba(168,85,247,.24); }
     .adv-i .adv-icon { --ibg:rgba(96,165,250,.13); --ibd:rgba(96,165,250,.34); --iglow:rgba(96,165,250,.22); }
     .adv-j .adv-icon { --ibg:rgba(52,211,153,.12); --ibd:rgba(52,211,153,.32); --iglow:rgba(52,211,153,.22); }
+    .adv-k .adv-icon { --ibg:rgba(45,212,191,.13); --ibd:rgba(45,212,191,.34); --iglow:rgba(45,212,191,.24); }
     .adv-title { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: .5px; }
     .adv-tag { display: block; margin-top: 5px; font-size: 11px; letter-spacing: 2px; color: var(--accent); }
     .adv-desc { font-size: 13.8px; line-height: 1.9; color: rgba(203,213,225,.8); max-width: 640px; position: relative; z-index: 1; }
@@ -424,7 +429,7 @@
     }
     @media (max-width: 960px) {
         .metrics { grid-template-columns: repeat(2, 1fr); }
-        .adv-grid { grid-template-columns: 1fr; grid-template-areas: "g" "h" "i" "j"; }
+        .adv-grid { grid-template-columns: 1fr; grid-template-areas: "g" "h" "i" "j" "k"; }
         .section-head { flex-wrap: wrap; }
         .section-head p { white-space: normal; }
         .cta-band { padding: 32px 22px; }
@@ -679,8 +684,8 @@
             </div>
         </article>
 
-        <!-- 11 C 代码体检舱（本轮新增，横跨整行重点展示） -->
-        <article class="adv-card adv-g reveal" style="grid-column:1/-1;background:linear-gradient(135deg,rgba(52,211,153,.075),rgba(34,211,238,.035) 60%,rgba(255,255,255,.02))">
+        <!-- 11 C 代码体检舱（独立网格区域 k，独占第四行，不与 07/08/09 重叠） -->
+        <article class="adv-card adv-k reveal" style="background:linear-gradient(135deg,rgba(52,211,153,.075),rgba(34,211,238,.035) 60%,rgba(255,255,255,.02))">
             <span class="adv-num">11</span>
             <div class="adv-top">
                 <div class="adv-icon">🧬</div>
