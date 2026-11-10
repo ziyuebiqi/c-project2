@@ -384,6 +384,96 @@
         }
         #exportQuizBtn:hover { filter: brightness(1.12); }
 
+        /* ============ 生成专属练习卷：配置弹窗 ============ */
+        .quiz-modal-box { width: 650px !important; max-width: 94vw; max-height: 88vh; overflow-y: auto; padding: 26px 28px !important; }
+        .quiz-modal-box h3 { font-size: 18px; letter-spacing: .5px; }
+        .quiz-modal-box > p { margin-bottom: 14px !important; line-height: 1.8; }
+        .qz-box #quizTopic { margin-bottom: 10px !important; font-size: 14px !important; }
+        .qz-label { font-size: 11.5px; letter-spacing: 1px; color: rgba(203,213,225,.88); font-weight: 600; margin: 15px 0 9px; display: flex; align-items: center; gap: 8px; }
+        .qz-label span { margin-left: auto; font-weight: 400; font-size: 10.5px; color: rgba(148,163,184,.62); letter-spacing: 0; }
+        .qz-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+        .qz-chip { font-size: 11.5px; padding: 6px 11px; border-radius: 9px; cursor: pointer; user-select: none;
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); color: rgba(203,213,225,.78); transition: .18s; }
+        .qz-chip:hover { border-color: rgba(34,211,238,.45); color: #fff; }
+        .qz-chip.on { background: rgba(34,211,238,.13); border-color: rgba(34,211,238,.5); color: #67e8f9; }
+        .qz-types { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .qz-type { display: flex; gap: 9px; align-items: flex-start; padding: 10px 11px; border-radius: 11px; cursor: pointer;
+            background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.09); transition: .18s; }
+        .qz-type:hover { border-color: rgba(139,92,246,.42); }
+        .qz-type.on { background: linear-gradient(135deg, rgba(34,211,238,.10), rgba(139,92,246,.09)); border-color: rgba(34,211,238,.42); }
+        .qz-type input { display: none; }
+        .qz-type .ti { font-size: 16px; line-height: 1.25; color: #22d3ee; flex: 0 0 18px; text-align: center; }
+        .qz-type b { display: block; font-size: 12.5px; color: #e2e8f0; font-weight: 600; }
+        .qz-type small { display: block; font-size: 10px; color: rgba(148,163,184,.72); margin-top: 3px; line-height: 1.5; }
+        .cflag { font-size: 9px; padding: 1px 5px; border-radius: 5px; background: rgba(52,211,153,.14); color: #34d399; margin-left: 5px; font-weight: 500; }
+        .qz-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .qz-row .qz-label { margin-top: 14px; }
+        .qz-box select { width: 100%; padding: 9px 11px; border-radius: 10px; font-size: 12.5px; color: #e2e8f0;
+            background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); outline: none; }
+        .qz-box select option { background: #111a2c; }
+        .qz-note { margin-top: 16px; font-size: 10.8px; line-height: 1.8; color: rgba(148,163,184,.82);
+            background: rgba(52,211,153,.06); border: 1px solid rgba(52,211,153,.2); border-radius: 10px; padding: 10px 12px; }
+        .qz-box .modal-actions { margin-top: 18px; }
+        @media(max-width:640px){ .qz-types,.qz-row{ grid-template-columns:1fr; } }
+
+        /* ============ 交互练习卷（直接插入聊天区，不经 marked 渲染） ============ */
+        .paper-wrap { width: 100%; max-width: 850px; margin: 14px auto; }
+        .paper { border-radius: 18px; overflow: hidden; border: 1px solid rgba(34,211,238,.22);
+            background: linear-gradient(160deg, rgba(15,23,42,.96), rgba(9,14,28,.96));
+            box-shadow: 0 22px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); }
+        .paper-hd { padding: 17px 20px; background: linear-gradient(120deg, rgba(34,211,238,.12), rgba(139,92,246,.12)); border-bottom: 1px solid rgba(255,255,255,.09); }
+        .paper-hd h3 { font-size: 16px; color: #fff; margin-bottom: 9px; }
+        .paper-meta { display: flex; flex-wrap: wrap; gap: 7px; }
+        .pmeta { font-size: 10.5px; padding: 4px 9px; border-radius: 8px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: rgba(203,213,225,.85); }
+        .pmeta.mint { color: #6ee7b7; border-color: rgba(52,211,153,.3); background: rgba(52,211,153,.08); }
+        .paper-prog { height: 5px; background: rgba(255,255,255,.06); }
+        .paper-prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg,#22d3ee,#a855f7); transition: width .4s; }
+        .paper-body { padding: 16px 18px; max-height: 64vh; overflow-y: auto; }
+        .q-card { border: 1px solid rgba(255,255,255,.09); border-radius: 14px; padding: 15px 16px; margin-bottom: 13px; background: rgba(255,255,255,.022); }
+        .q-card.done-right { border-color: rgba(52,211,153,.32); }
+        .q-card.done-wrong { border-color: rgba(251,113,133,.32); }
+        .q-hd { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+        .q-no { font-family: monospace; font-size: 12px; color: #22d3ee; }
+        .q-badge { font-size: 10px; padding: 3px 9px; border-radius: 7px; background: rgba(139,92,246,.15); color: #c4b5fd; border: 1px solid rgba(139,92,246,.3); }
+        .q-badge.c { background: rgba(52,211,153,.1); color: #6ee7b7; border-color: rgba(52,211,153,.28); }
+        .q-point { font-size: 10px; color: rgba(148,163,184,.72); }
+        .q-diff { margin-left: auto; font-size: 10px; color: #fbbf24; }
+        .q-stem { font-size: 13.5px; line-height: 1.85; color: #e2e8f0; margin-bottom: 10px; white-space: pre-wrap; }
+        .q-code { font-family: Consolas, Monaco, monospace; font-size: 12px; line-height: 1.7; white-space: pre-wrap;
+            background: rgba(2,7,16,.78); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 11px 13px; color: #b8e6f0; margin-bottom: 11px; overflow-x: auto; }
+        .q-options { display: grid; gap: 7px; margin-bottom: 11px; }
+        .q-opt { display: flex; gap: 9px; align-items: flex-start; font-size: 12.5px; line-height: 1.7; color: rgba(226,232,240,.9);
+            padding: 9px 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,.09); background: rgba(255,255,255,.025); cursor: pointer; transition: .18s; }
+        .q-opt:hover { border-color: rgba(34,211,238,.45); background: rgba(34,211,238,.06); }
+        .q-opt.sel { border-color: rgba(34,211,238,.6); background: rgba(34,211,238,.1); }
+        .q-opt input { margin-top: 4px; accent-color: #22d3ee; }
+        .q-input { width: 100%; min-height: 80px; resize: vertical; font-family: Consolas, Monaco, monospace; font-size: 12px; line-height: 1.7;
+            color: #dbeafe; background: rgba(2,7,16,.72); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; padding: 10px 12px; outline: none; }
+        .q-input:focus { border-color: rgba(34,211,238,.55); }
+        .q-case { font-size: 10.5px; color: rgba(148,163,184,.8); margin: 0 0 9px; font-family: Consolas, monospace; }
+        .q-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+        .q-btn { font-size: 11.5px; font-weight: 600; padding: 8px 15px; border-radius: 9px; cursor: pointer;
+            border: 1px solid rgba(34,211,238,.4); background: rgba(34,211,238,.1); color: #7dd3fc; transition: .18s; }
+        .q-btn:hover { background: rgba(34,211,238,.2); color: #fff; }
+        .q-btn.primary { background: linear-gradient(120deg,#22d3ee,#8b5cf6); color: #fff; border: none; }
+        .q-btn.ghost { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.14); color: rgba(203,213,225,.8); }
+        .q-btn:disabled { opacity: .55; cursor: not-allowed; }
+        .q-result { display: none; margin-top: 11px; padding: 11px 13px; border-radius: 10px; font-size: 12px; line-height: 1.85; }
+        .q-result.show { display: block; }
+        .q-result.ok { background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.3); color: #a7f3d0; }
+        .q-result.no { background: rgba(251,113,133,.08); border: 1px solid rgba(251,113,133,.3); color: #fecdd3; }
+        .q-result.info { background: rgba(148,163,184,.08); border: 1px solid rgba(148,163,184,.22); color: rgba(203,213,225,.9); }
+        .q-result b { color: #fff; }
+        .q-result pre { font-family: Consolas, monospace; font-size: 11px; white-space: pre-wrap; background: rgba(0,0,0,.3); padding: 8px 10px; border-radius: 7px; margin-top: 7px; }
+        .q-hint { font-size: 11px; color: #fbbf24; margin-top: 9px; line-height: 1.75; }
+        .paper-ft { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; padding: 14px 18px; border-top: 1px solid rgba(255,255,255,.09); background: rgba(255,255,255,.02); }
+        .paper-score { font-size: 12.5px; color: rgba(203,213,225,.85); margin-right: auto; }
+        .paper-score b { color: #34d399; font-size: 16px; font-family: monospace; }
+        .paper-ft button { font-size: 11.5px; padding: 8px 13px; border-radius: 9px; cursor: pointer;
+            border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.05); color: rgba(226,232,240,.85); transition: .18s; }
+        .paper-ft button:hover { border-color: rgba(34,211,238,.5); color: #fff; }
+        .paper-ft button.hi { background: linear-gradient(120deg,#22d3ee,#8b5cf6); border: none; color: #fff; }
+
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(4, 7, 14, 0.6); z-index: 999; backdrop-filter: blur(8px); justify-content: center; align-items: center;
@@ -609,6 +699,7 @@
             </div>
             <div class="nav-btn" id="genQuizBtn">
                 <span class="icon">✍️</span> 生成专属题目
+                <span style="margin-left:auto;font-size:9px;letter-spacing:.6px;padding:2px 7px;border-radius:8px;background:rgba(251,191,36,.13);color:#fbbf24;border:1px solid rgba(251,191,36,.28)">练习重点</span>
             </div>
             <div class="nav-btn" id="downloadDocBtn">
                 <span class="icon">📥</span> 生成学习文档
@@ -697,15 +788,65 @@
         </div>
     </div>
 
-    <!-- 弹窗 HTML -->
+    <!-- 弹窗 HTML：生成专属练习卷（可勾选题型） -->
     <div class="modal-overlay" id="quizModal">
-        <div class="modal-box">
-            <h3>✍️ 生成专属考题</h3>
-            <p>请输入你想练习的知识点，AI 将为您生成配套试卷。</p>
-            <input type="text" id="quizTopic" placeholder="例如：C语言指针、数组等">
+        <div class="modal-box quiz-modal-box qz-box">
+            <h3>✍️ 生成专属 C 语言练习卷</h3>
+            <p>选知识点、勾题型，生成一套<strong style="color:#7dd3fc">真的可以做</strong>的练习：客观题自动判分，编程 / 改错 / 预测输出题调用本机编译器真实运行判题，错题一键收进题库。</p>
+
+            <div class="qz-label">① 练习知识点 <span>点标签快速填入，也可自己输入</span></div>
+            <input type="text" id="quizTopic" placeholder="例如：指针与数组、数组越界、malloc...">
+            <div class="qz-chips" id="qzTopicChips">
+                <span class="qz-chip" data-topic="指针与地址">指针与地址</span>
+                <span class="qz-chip" data-topic="数组越界">数组越界</span>
+                <span class="qz-chip" data-topic="字符串与结束符">字符串与结束符</span>
+                <span class="qz-chip" data-topic="动态内存 malloc/free">动态内存 malloc/free</span>
+                <span class="qz-chip" data-topic="结构体">结构体</span>
+                <span class="qz-chip" data-topic="函数与递归">函数与递归</span>
+                <span class="qz-chip" data-topic="预处理与宏">预处理与宏</span>
+                <span class="qz-chip" data-topic="位运算">位运算</span>
+                <span class="qz-chip" data-topic="运算符优先级">运算符优先级</span>
+                <span class="qz-chip" data-topic="scanf 与格式化 IO">scanf 与格式化 IO</span>
+                <span class="qz-chip" data-topic="未定义行为">未定义行为</span>
+                <span class="qz-chip" data-topic="文件 IO">文件 IO</span>
+            </div>
+
+            <div class="qz-label">② 勾选题型 <span id="qzTypeCount">已选 4 类</span></div>
+            <div class="qz-types" id="qzTypeChips">
+                <label class="qz-type on"><input type="checkbox" value="choice" checked><span class="ti">◉</span><div><b>选择题</b><small>概念辨析 · 自动判分</small></div></label>
+                <label class="qz-type on"><input type="checkbox" value="concept" checked><span class="ti">✎</span><div><b>概念题</b><small>简答 · 对照要点自评</small></div></label>
+                <label class="qz-type on"><input type="checkbox" value="predict" checked><span class="ti">▶</span><div><b>预测输出题<span class="cflag">C 专属</span></b><small>读 C 代码猜输出 / 是否崩溃 · 真跑验证</small></div></label>
+                <label class="qz-type on"><input type="checkbox" value="debug" checked><span class="ti">⚑</span><div><b>改错找 bug<span class="cflag">C 专属</span></b><small>修一段有错的 C 代码 · 编译验证</small></div></label>
+                <label class="qz-type"><input type="checkbox" value="fill"><span class="ti">▢</span><div><b>代码填空题<span class="cflag">C 专属</span></b><small>补全 ___ 处的关键语句</small></div></label>
+                <label class="qz-type"><input type="checkbox" value="coding"><span class="ti">⌨</span><div><b>编程题<span class="cflag">C 专属</span></b><small>写代码 · 真实编译运行判题</small></div></label>
+            </div>
+
+            <div class="qz-row">
+                <div>
+                    <div class="qz-label">③ 难度</div>
+                    <select id="qzDifficulty">
+                        <option value="入门">入门 · 巩固基础语法</option>
+                        <option value="进阶" selected>进阶 · 指针 / 内存 / 边界</option>
+                        <option value="易错强化">易错强化 · 全是 C 经典坑</option>
+                    </select>
+                </div>
+                <div>
+                    <div class="qz-label">④ 题量</div>
+                    <select id="qzCount">
+                        <option value="3" selected>3 题 · 推荐（生成最快）</option>
+                        <option value="4">4 题 · 标准一组</option>
+                        <option value="6">6 题 · 完整一组</option>
+                        <option value="8">8 题 · 强化训练</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="qz-note">💡 标「C 专属」的题型会调用本机编译器真实运行验证（需启动 <b>3001 本地服务</b>并安装 gcc）；未安装时仍可作答、看答案与解析。本地 qwen3:4b 现场出卷约需 <b>20~90 秒</b>（题量越大越久），生成时会实时显示进度，可随时点「直接用内置 C 真题」；若服务未启动或模型不可用，系统会<b>自动秒开内置精编题</b>，练习不会中断。赶时间也可点左下「内置 C 真题秒练」，或切「AI 调用访问 / 联网模式」由云端模型出卷。</div>
+
             <div class="modal-actions">
+                <button class="btn-cancel" id="qzBuiltinBtn" style="margin-right:auto;border-color:rgba(52,211,153,.35) !important;color:#6ee7b7 !important">⚡ 内置 C 真题秒练</button>
                 <button class="btn-cancel" id="cancelQuizBtn">取消</button>
-                <button class="btn-confirm" id="confirmQuizBtn">生成试卷</button>
+                <button class="btn-confirm" id="confirmQuizBtn">✦ AI 生成练习卷</button>
             </div>
         </div>
     </div>
@@ -1065,15 +1206,24 @@
         if (loading) loading.remove();
     }
 
-    async function requestAI(prompt, useLocal, payloadExtra = {}) {
+    async function requestAI(prompt, useLocal, payloadExtra = {}, signal) {
         const url = useLocal ? LOCAL_API_URL : API_URL;
         const payload = { message: prompt, ...payloadExtra };
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            ...(signal ? { signal } : {})
         });
-        return await response.json();
+        const text = await response.text();
+        let data;
+        try { data = JSON.parse(text); }
+        catch (e) {
+            throw new Error('后端返回了非 JSON 内容（HTTP ' + response.status + '）。本地模式请确认已运行 node server/server-ollama.js；'
+                + text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').slice(0, 90));
+        }
+        if (!response.ok && data && data.error) throw new Error(data.error);
+        return data;
     }
 
     // 创建流式回复气泡（AI 回答逐字显示）
@@ -1087,12 +1237,13 @@
     }
 
     // 流式请求：后端逐字推送，前端实时渲染（兼容旧 JSON 返回格式）
-    async function requestAIStream(prompt, useLocal, payloadExtra = {}, onChunk) {
+    async function requestAIStream(prompt, useLocal, payloadExtra = {}, onChunk, signal) {
         const url = useLocal ? LOCAL_API_URL : API_URL;
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: prompt, stream: true, ...payloadExtra })
+            body: JSON.stringify({ message: prompt, stream: true, ...payloadExtra }),
+            ...(signal ? { signal } : {})
         });
         const contentType = response.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
@@ -1103,7 +1254,7 @@
             onChunk(full);
             return full;
         }
-        if (!response.ok) throw new Error('后端服务异常');
+        if (!response.ok) throw new Error('后端服务异常（HTTP ' + response.status + '），请确认 3001 本地服务已启动');
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
         let full = '';
@@ -1228,54 +1379,751 @@
         }
     };
 
-    // ================= 题目生成与导出 =================
+    // ================= 生成专属练习卷（勾选题型 → 逐题作答 → 真编译判题 → 错题入库） =================
     const quizModal = document.getElementById('quizModal');
     const quizTopic = document.getElementById('quizTopic');
     const exportQuizBtn = document.getElementById('exportQuizBtn');
+    const QZ_PREFS = 'quizPrefs_v1';
+    const NL = String.fromCharCode(92) + 'n';   // prompt 里表示「代码换行写成 \n」的字面量
 
-    document.getElementById('genQuizBtn').onclick = function() {
+    const QZ_META = {
+        choice:  { name: '选择题',     c: false },
+        concept: { name: '概念题',     c: false },
+        predict: { name: '预测输出题', c: true  },
+        debug:   { name: '改错找 bug', c: true  },
+        fill:    { name: '代码填空题', c: true  },
+        coding:  { name: '编程题',     c: true  }
+    };
+    const QZ_RULE = {
+        choice:  'options 放 4 个选项字符串，answer 只写正确选项字母 A/B/C/D',
+        concept: 'answer 写参考答案要点（2~4 条），code 与 options 留空',
+        predict: 'code 放一段完整可编译的 C 程序，answer 写它的准确输出（若会崩溃就写「运行时崩溃」）；有输入时填 stdin 与 expectedStdout',
+        debug:   'code 放一段故意含一个明确 bug 的 C 程序，answer 说明错在哪一行、该怎么改；expectedStdout 填修复后的正确输出',
+        fill:    'code 放含 1~2 处 ___ 占位的 C 程序，answer 为按出现顺序的填空答案（多个用 | 分隔）',
+        coding:  'code 放起手代码（main 骨架或函数签名），stdin 与 expectedStdout 必须给出一组可判题的测试用例，answer 写实现思路'
+    };
+    const qzEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    /* ---------- 弹窗：记住上次勾选题型 / 难度 / 题量 ---------- */
+    function qzLoadPrefs() { try { return JSON.parse(localStorage.getItem(QZ_PREFS)) || {}; } catch (e) { return {}; } }
+    function qzSavePrefs(cfg) {
+        try { localStorage.setItem(QZ_PREFS, JSON.stringify({ types: cfg.types, difficulty: cfg.difficulty, count: cfg.count })); } catch (e) { }
+    }
+    function qzSyncTypes() {
+        const boxes = [...document.querySelectorAll('#qzTypeChips input')];
+        boxes.forEach(b => b.closest('.qz-type').classList.toggle('on', b.checked));
+        document.getElementById('qzTypeCount').textContent = '已选 ' + boxes.filter(b => b.checked).length + ' 类';
+    }
+    document.querySelectorAll('#qzTypeChips .qz-type').forEach(label => {
+        label.addEventListener('click', e => {
+            // 点在文字上时阻止 label 的默认激活，自己切换；点被转发到 input 时浏览器已切换，只同步样式
+            if (e.target.tagName === 'INPUT') { qzSyncTypes(); return; }
+            e.preventDefault();
+            const cb = label.querySelector('input');
+            cb.checked = !cb.checked;
+            qzSyncTypes();
+        });
+    });
+    document.querySelectorAll('#qzTypeChips input').forEach(cb => cb.addEventListener('change', qzSyncTypes));
+    document.querySelectorAll('#qzTopicChips .qz-chip').forEach(chip => {
+        chip.onclick = () => {
+            document.querySelectorAll('#qzTopicChips .qz-chip').forEach(x => x.classList.remove('on'));
+            chip.classList.add('on');
+            quizTopic.value = chip.dataset.topic;
+        };
+    });
+
+    document.getElementById('genQuizBtn').onclick = function () {
         if (!useLocalKb && !useAiApi) return addMsg("⚠️ 请先在左侧开启任一模型！", false, true);
-        quizModal.classList.add('show');
+        const p = qzLoadPrefs();
+        if (Array.isArray(p.types)) document.querySelectorAll('#qzTypeChips input').forEach(b => b.checked = p.types.includes(b.value));
+        if (p.difficulty) document.getElementById('qzDifficulty').value = p.difficulty;
+        if (p.count) document.getElementById('qzCount').value = p.count;
+        qzSyncTypes();
         quizTopic.value = '';
+        document.querySelectorAll('#qzTopicChips .qz-chip').forEach(x => x.classList.remove('on'));
+        quizModal.classList.add('show');
         quizTopic.focus();
     };
+    document.getElementById('cancelQuizBtn').onclick = () => quizModal.classList.remove('show');
+    quizModal.addEventListener('click', e => { if (e.target === quizModal) quizModal.classList.remove('show'); });
+    quizTopic.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('confirmQuizBtn').click(); });
 
-    document.getElementById('cancelQuizBtn').onclick = function() {
+    function qzConfig(topic) {
+        return {
+            topic,
+            types: [...document.querySelectorAll('#qzTypeChips input:checked')].map(b => b.value),
+            difficulty: document.getElementById('qzDifficulty').value,
+            count: Number(document.getElementById('qzCount').value) || 4
+        };
+    }
+
+    /* ---------- 内置 C 专项真题：本地模型慢时的秒开练习，也保证题目质量下限 ---------- */
+    const qzC = arr => arr.join(String.fromCharCode(10));   // 数组 → 真实换行的 C 源码
+    const C0 = String.fromCharCode(92) + '0';               // C 源码里字符串结束符的写法
+    const QZ_BANK = [
+        {
+            type: 'choice', point: '数组退化与 sizeof', difficulty: '进阶',
+            stem: '在 64 位机器上，void f(int a[10]) { printf("%zu", sizeof(a)); } 调用后输出什么？',
+            code: '', options: ['A. 40（10 个 int）', 'B. 8（一个指针的大小）', 'C. 10', 'D. 编译报错'],
+            answer: 'B', stdin: '', expectedStdout: '',
+            explanation: '数组作为函数形参会退化为指向首元素的指针，sizeof 求的是指针而不是整个数组；要拿到长度必须额外传一个参数。',
+            hints: ['想想形参里的 int a[10] 实际被编译器当成什么类型。']
+        },
+        {
+            type: 'choice', point: '赋值号与判等', difficulty: '入门',
+            stem: 'int x = 5; if (x = 0) printf("A"); else printf("B"); 的输出是？',
+            code: '', options: ['A. A', 'B. B', 'C. 编译失败', 'D. 结果随机'],
+            answer: 'B', stdin: '', expectedStdout: '',
+            explanation: 'x = 0 是赋值而不是比较，赋值表达式的值为 0（假），所以永远走 else。把常量写左边（0 == x）能让编译器直接报错。',
+            hints: ['数一下等号有几个。']
+        },
+        {
+            type: 'predict', point: '数组越界与未定义行为', difficulty: '易错',
+            stem: '下面这段程序会输出什么？如果不会正常输出，请写「运行时崩溃」。',
+            code: qzC(['#include <stdio.h>', 'int main(void) {', '    int a[3] = {10, 20, 30};', '    int sum = 0;', '    for (int i = 0; i <= 3; i++) sum += a[i];', '    printf("%d' + NL + '", sum);', '    return 0;', '}']),
+            options: [], answer: '运行时崩溃', stdin: '', expectedStdout: '',
+            explanation: 'a 的合法下标是 0~2，循环最后一次访问 a[3] 越界。C 不做边界检查，这是未定义行为：可能读到垃圾值、悄悄改坏别的变量，也可能直接段错误。写「运行时崩溃」或「未定义行为」都算对。',
+            hints: ['数一下 a 有几个元素、循环会取到哪个下标。']
+        },
+        {
+            type: 'predict', point: '字符串结束符', difficulty: '进阶',
+            stem: '写出下面程序的准确输出（两个数之间一个空格）。',
+            code: qzC(['#include <stdio.h>', '#include <string.h>', 'int main(void) {', '    char s[] = "abc";', '    printf("%zu %zu' + NL + '", sizeof(s), strlen(s));', '    return 0;', '}']),
+            options: [], answer: '4 3', stdin: '', expectedStdout: '4 3',
+            explanation: 'sizeof 求的是数组占用的字节数，包含编译器自动补的结尾 ' + C0 + '；strlen 从首字符数到 ' + C0 + ' 之前为止，所以是 3。',
+            hints: ['字符串字面量末尾编译器会自动加一个字符。']
+        },
+        {
+            type: 'debug', point: 'scanf 与地址', difficulty: '入门',
+            stem: '这段程序想读入一个整数并输出它的两倍，但运行时会崩溃。请直接修改代码修好它。',
+            code: qzC(['#include <stdio.h>', 'int main(void) {', '    int n;', '    scanf("%d", n);', '    printf("%d' + NL + '", n * 2);', '    return 0;', '}']),
+            options: [], answer: '第 4 行 scanf 的参数 n 前漏写 &，应改成 &n', stdin: '5', expectedStdout: '10',
+            explanation: 'scanf 需要变量的地址才能把输入写进去；直接传 n 会把 n 的随机初值当成地址，通常触发段错误。数组名本身是地址，不需要 &。',
+            hints: ['scanf 要的是「变量的地址」还是「变量的值」？']
+        },
+        {
+            type: 'debug', point: '循环边界与越界', difficulty: '易错',
+            stem: '这段程序想求 4 个元素的和，但结果不对甚至会崩。请修正循环边界。',
+            code: qzC(['#include <stdio.h>', 'int main(void) {', '    int a[4] = {1, 2, 3, 4};', '    int sum = 0;', '    for (int i = 0; i <= 4; i++) sum += a[i];', '    printf("%d' + NL + '", sum);', '    return 0;', '}']),
+            options: [], answer: '第 5 行的 i <= 4 应改成 i < 4', stdin: '', expectedStdout: '10',
+            explanation: '4 个元素的合法下标是 0~3，<= 4 会多访问 a[4]。把终止条件写成 < 长度 是 C 里最稳的写法。',
+            hints: ['循环最后一次 i 等于多少？那个下标合法吗？']
+        },
+        {
+            type: 'fill', point: '字符串结束符', difficulty: '进阶',
+            stem: '补全 ___ 处，让 printf 正确输出 abc（注意 %s 如何判断字符串结束）。',
+            code: qzC(['#include <stdio.h>', 'int main(void) {', '    char s[4];', '    s[0] = \'a\'; s[1] = \'b\'; s[2] = \'c\';', '    s[3] = ___;', '    printf("%s' + NL + '", s);', '    return 0;', '}']),
+            options: [], answer: "'" + C0 + "'", stdin: '', expectedStdout: 'abc',
+            explanation: '%s 一直打印到 ' + C0 + ' 为止；不给 s[3] 赋字符串结束符，就会继续读数组后面的内存，属于越界读。',
+            hints: ['C 字符串靠哪个字符标记结尾？']
+        },
+        {
+            type: 'coding', point: '数组遍历与极值', difficulty: '进阶',
+            stem: '读入 5 个整数，输出其中的最大值。请把 main 补全（测试输入：3 9 2 7 5）。',
+            code: qzC(['#include <stdio.h>', 'int main(void) {', '    ', '    return 0;', '}']),
+            options: [], answer: '用 scanf 依次读入 5 个数，把第一个作为 max 初值，循环比较其余 4 个，最后 printf 输出 max。',
+            stdin: '3 9 2 7 5', expectedStdout: '9',
+            explanation: 'max 应初始化为第一个实际读入的元素，而不是 0——否则输入全是负数时会得到错误答案。这是 C 数组遍历题最常见的坑。',
+            hints: ['如果 5 个数全是负数，max 初始化成 0 还对吗？']
+        },
+        {
+            type: 'concept', point: '字符串字面量与存储区', difficulty: '易错',
+            stem: '为什么 char *p = "hello"; p[0] = \'H\'; 常常运行时崩溃，而 char p[] = "hello"; p[0] = \'H\'; 却可以正常修改？',
+            code: '', options: [],
+            answer: '字符串字面量存放在只读数据段，char* 只是指向它，写入属于未定义行为；char[] 会在栈上复制一份可写的副本，所以能改。',
+            stdin: '', expectedStdout: '',
+            explanation: '这是 C 的存储模型问题：指针变量和数组变量的内存归属完全不同。声明指向字面量的指针时加上 const，能让编译器在编译期就拦住这类错误。',
+            hints: ['想想 "hello" 这块内存在程序里属于哪个区、能不能写。']
+        }
+    ];
+    function qzBuiltin(cfg) {
+        const pool = QZ_BANK.filter(q => cfg.types.includes(q.type));
+        const picked = [];
+        cfg.types.forEach(t => { const q = pool.find(x => x.type === t && !picked.includes(x)); if (q) picked.push(q); });
+        let g = 0;
+        while (picked.length < cfg.count && pool.length && g < 60) {
+            const q = pool[g % pool.length];
+            if (!picked.includes(q)) picked.push(q);
+            g++;
+        }
+        return {
+            title: '【内置精编】' + cfg.topic + ' · C 专项练习', topic: cfg.topic,
+            questions: picked.slice(0, cfg.count).map(q => Object.assign({}, q))
+        };
+    }
+    document.getElementById('qzBuiltinBtn').onclick = function () {
+        // 若上一轮 AI 还在后台写题，先中止，避免同时落下两份练习卷
+        if (typeof qzAbort !== 'undefined' && qzAbort) { qzAbort.abort(); qzSettled = true; qzFinishGen(); }
+        const topic = quizTopic.value.trim() || 'C 语言核心易错点';
+        const cfg = qzConfig(topic);
+        if (!cfg.types.length) { alert('请至少勾选一种题型！'); return; }
+        qzSavePrefs(cfg);
         quizModal.classList.remove('show');
+        exportQuizBtn.style.display = 'none';
+        lastQuizTopic = topic;
+        const quiz = qzBuiltin(cfg);
+        addMsg('用内置 C 真题开一组练习：' + cfg.types.map(t => QZ_META[t].name).join('、') + '（' + quiz.questions.length + ' 题）', true);
+        qzRenderPaper(quiz, cfg);
+        recordQA('内置 C 真题练习（' + topic + '）', quiz.questions.map(q => q.stem).join('\n'), '出题', topic);
+        addMsg('⚡ 已秒开 ' + quiz.questions.length + ' 道精编 C 真题。标「C 代码」的题目可点「编译运行并判题」用 gcc 真跑验证。' +
+            (quiz.questions.length < cfg.count ? '（该组合内置题只有 ' + quiz.questions.length + ' 道，想要更多请点「AI 生成练习卷」）' : ''), false, true);
     };
 
-    document.getElementById('confirmQuizBtn').onclick = async function() {
-        const topic = quizTopic.value.trim();
-        if (!topic) return alert('请输入知识点！');
+    /* ---------- 出题 Prompt：强制结构化 JSON，且必须是 C 语言特有问题 ---------- */
+    function qzPrompt(cfg) {
+        const rules = cfg.types.map((t, i) => '  ' + (i + 1) + '. ' + QZ_META[t].name + '（type="' + t + '"）：' + QZ_RULE[t]).join('\n');
+        return [
+            '请为 C 语言学习者生成一套【' + cfg.topic + '】专项练习卷，难度「' + cfg.difficulty + '」，共 ' + cfg.count + ' 题。',
+            '',
+            '只出下面勾选的题型，每种至少 1 题（题型数少于题量时可重复）：',
+            rules,
+            '',
+            '输出严格为一个合法 JSON 对象（不要 Markdown 代码块、不要任何解释文字）：',
+            '{"title":"练习卷标题","topic":"' + cfg.topic + '","questions":[',
+            '  {"type":"choice|concept|predict|debug|fill|coding",',
+            '   "point":"本题考查的具体 C 语言知识点",',
+            '   "difficulty":"入门|进阶|易错",',
+            '   "stem":"题干；换行写成 ' + NL + '",',
+            '   "code":"涉及代码时填完整 C 代码，换行写成 ' + NL + '；概念题可为空字符串",',
+            '   "options":["A. ...","B. ...","C. ...","D. ..."],',
+            '   "answer":"按上面对应题型的规则填写",',
+            '   "stdin":"运行输入，没有就空字符串",',
+            '   "expectedStdout":"期望输出，没有就空字符串",',
+            '   "explanation":"解析：讲清背后的 C 语言机制（内存布局 / 编译期行为 / 未定义行为），不要只说答案",',
+            '   "hints":["提示一（不给答案）","提示二（更接近答案）"]}',
+            ']}',
+            '',
+            '硬性要求：',
+            '- 考「会不会读 / 会不会写 C 代码」，不要出成背概念的通识题；优先涉及指针、数组越界、字符串结束符、sizeof、malloc/free、宏展开、运算符优先级、未定义行为、编译报错等 C 特有内容。',
+            '- code 中的 C 代码必须真实可用 gcc -std=c11 编译（debug 题除外，它要故意带一个明确 bug）。',
+            '- 所有字符串值里的换行一律写成 ' + NL + '，不要有真实换行或未转义的英文双引号。',
+            '- 严格控制篇幅：每题所有字段合计不超过 250 字；stem 不超过 2 句，explanation 不超过 2 句，hints 只给 1 条；不要在 stem 里重复粘贴代码，代码只放 code 字段。',
+            '- questions 数组长度必须正好是 ' + cfg.count + '。'
+        ].join('\n');
+    }
 
+    function qzParse(raw) {
+        let s = String(raw || '').trim();
+        s = s.replace(/<think>[\s\S]*?<\/think>/g, '');
+        const k = s.indexOf('<think>');
+        if (k !== -1) s = s.slice(0, k);
+        s = s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+        const ok = ['choice', 'concept', 'predict', 'debug', 'fill', 'coding'];
+        const normalize = o => {
+            if (!o || !Array.isArray(o.questions)) return null;
+            o.questions = o.questions.filter(q => q && typeof q === 'object' && ok.includes(q.type)).slice(0, 12).map(q => ({
+                type: q.type,
+                point: String(q.point || 'C 语言'), difficulty: String(q.difficulty || '进阶'),
+                stem: String(q.stem || ''), code: String(q.code || ''),
+                options: Array.isArray(q.options) ? q.options.map(String) : [],
+                answer: String(q.answer || ''), stdin: String(q.stdin || ''),
+                expectedStdout: String(q.expectedStdout || ''), explanation: String(q.explanation || ''),
+                hints: Array.isArray(q.hints) ? q.hints.map(String) : []
+            }));
+            return o.questions.length ? o : null;
+        };
+        // ① 正常解析
+        let o = null;
+        try { o = JSON.parse(s); } catch (e) { }
+        let quiz = normalize(o);
+        if (quiz) return quiz;
+        // ② 去掉前后杂字再试
+        const a = s.indexOf('{'), b = s.lastIndexOf('}');
+        if (a !== -1 && b > a) { try { quiz = normalize(JSON.parse(s.slice(a, b + 1))); } catch (e2) { } }
+        if (quiz) return quiz;
+        // ③ 抢救被 num_predict 截断的 JSON：逐个抠出完整的题目对象
+        const qs = [];
+        const re = /\{\s*"type"\s*:/g;
+        let m;
+        while ((m = re.exec(s))) {
+            const start = m.index;
+            let depth = 0, inStr = false, esc = false, end = -1;
+            for (let i = start; i < s.length; i++) {
+                const ch = s[i];
+                if (inStr) {
+                    if (esc) { esc = false; continue; }
+                    if (ch === String.fromCharCode(92)) { esc = true; continue; }
+                    if (ch === '"') inStr = false;
+                    continue;
+                }
+                if (ch === '"') { inStr = true; continue; }
+                if (ch === '{') depth++;
+                else if (ch === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
+            }
+            if (end > start) {
+                try { const q = JSON.parse(s.slice(start, end)); if (q && q.type) qs.push(q); } catch (e3) { }
+                re.lastIndex = end;
+            }
+        }
+        return qs.length ? normalize({ title: '', topic: '', questions: qs }) : null;
+    }
+
+    /* ---------- 调用上一轮的 C 代码体检引擎做真实编译 / 运行 / 判题 ---------- */
+    async function qzCheck(code, stdin, expected) {
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), 45000);
+        try {
+            const r = await fetch('http://localhost:3001/api/code/analyze', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+                body: JSON.stringify({
+                    code, stdin: stdin || '', expectedStdout: expected || '',
+                    taskGoal: '练习题自动判题', useAI: false, useSanitizer: false
+                })
+            });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return await r.json();
+        } finally { clearTimeout(timer); }
+    }
+
+    function qzLoading(text) {
+        const d = document.createElement('div');
+        d.className = 'msg-item msg-left'; d.id = 'loadingMsg';
+        d.innerHTML = '<div class="avatar">✦</div><div class="bubble" style="color:rgba(148,163,184,.8)">' + qzEsc(text) + '</div>';
+        chatBox.appendChild(d); chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    /* ---------- 练习卷渲染 ---------- */
+    function qzQuestionHtml(q, i, pid) {
+        const m = QZ_META[q.type] || { name: '题目', c: false };
+        let body = '';
+        if (q.code) body += '<div class="q-code">' + qzEsc(q.code) + '</div>';
+        if (q.type === 'choice') {
+            const opts = q.options.length ? q.options : ['A. ', 'B. ', 'C. ', 'D. '];
+            body += '<div class="q-options">' + opts.map((o, k) =>
+                '<label class="q-opt"><input type="radio" name="qz_' + pid + '_' + i + '" value="' + 'ABCD'[k] + '"><span>' +
+                qzEsc(String(o).replace(/^\s*[A-Da-d][.、)]\s*/, '')) + '</span></label>').join('') + '</div>';
+        } else {
+            let ph = '', prefill = '';
+            if (q.type === 'concept') ph = '写下你的理解 / 答案要点';
+            if (q.type === 'predict') ph = '写下你认为的输出；若会崩溃就写「运行时崩溃」';
+            if (q.type === 'fill') ph = '按 ___ 出现顺序填写答案，多个用 | 分隔';
+            if (q.type === 'debug') { ph = '在下面直接修改这段有 bug 的 C 代码'; prefill = q.code; }
+            if (q.type === 'coding') { ph = '在这里写你的 C 程序'; prefill = q.code || '#include <stdio.h>\nint main(void) {\n    \n    return 0;\n}'; }
+            if ((q.stdin || q.expectedStdout) && (q.type === 'coding' || q.type === 'debug')) {
+                body += '<div class="q-case">测试输入：' + (q.stdin ? qzEsc(q.stdin) : '（无）') +
+                    '　｜　期望输出：' + (q.expectedStdout ? qzEsc(q.expectedStdout) : '（无）') + '</div>';
+            }
+            body += '<textarea class="q-input" data-role="answer" placeholder="' + qzEsc(ph) + '">' + qzEsc(prefill) + '</textarea>';
+        }
+        const mainAct = (q.type === 'debug' || q.type === 'coding') ? 'run' : 'submit';
+        const mainLabel = mainAct === 'run' ? '⚡ 编译运行并判题'
+            : q.type === 'predict' ? '⚡ 提交并用编译器验证'
+                : q.type === 'concept' ? '对照参考答案' : '提交答案';
+        return [
+            '<div class="q-card" data-i="' + i + '">',
+            '<div class="q-hd"><span class="q-no">Q' + (i + 1) + '</span>',
+            '<span class="q-badge ' + (m.c ? 'c' : '') + '">' + qzEsc(m.name) + (m.c ? ' · C 代码' : '') + '</span>',
+            '<span class="q-point">' + qzEsc(q.point) + '</span>',
+            '<span class="q-diff">' + qzEsc(q.difficulty) + '</span></div>',
+            '<div class="q-stem">' + qzEsc(q.stem) + '</div>',
+            body,
+            '<div class="q-actions">',
+            '<button class="q-btn primary" data-act="' + mainAct + '" data-i="' + i + '">' + mainLabel + '</button>',
+            '<button class="q-btn ghost" data-act="hint" data-i="' + i + '">💡 看提示</button>',
+            '<button class="q-btn ghost" data-act="reveal" data-i="' + i + '">看解析</button>',
+            '</div>',
+            '<div class="q-hint" data-role="hint" style="display:none"></div>',
+            '<div class="q-result" data-role="result"></div>',
+            '</div>'
+        ].join('');
+    }
+
+    function qzRenderPaper(quiz, cfg) {
+        const pid = 'p' + Date.now();
+        const wrap = document.createElement('div');
+        wrap.className = 'paper-wrap';
+        wrap.innerHTML = [
+            '<div class="paper">',
+            '<div class="paper-hd"><h3>📝 ' + qzEsc(quiz.title || (cfg.topic + ' 专项练习')) + '</h3>',
+            '<div class="paper-meta">',
+            '<span class="pmeta mint">' + qzEsc(cfg.topic) + '</span>',
+            '<span class="pmeta">' + qzEsc(cfg.difficulty) + '</span>',
+            '<span class="pmeta">' + quiz.questions.length + ' 题</span>',
+            '<span class="pmeta">' + qzEsc(cfg.types.map(t => QZ_META[t].name).join(' · ')) + '</span>',
+            '<span class="pmeta">C11 · 可作答判分</span>',
+            '</div></div>',
+            '<div class="paper-prog"><i></i></div>',
+            '<div class="paper-body">' + quiz.questions.map((q, i) => qzQuestionHtml(q, i, pid)).join('') + '</div>',
+            '<div class="paper-ft">',
+            '<span class="paper-score" data-role="score">已作答 <b>0</b> / ' + quiz.questions.length + ' · 判对 <b>0</b></span>',
+            '<button data-act="bank">＋ 错题收进题库</button>',
+            '<button data-act="export">⬇ 导出练习卷</button>',
+            '<button class="hi" data-act="again">再来一套</button>',
+            '</div></div>'
+        ].join('');
+        const paper = wrap.querySelector('.paper');
+        paper._quiz = quiz; paper._cfg = cfg;
+        paper._st = { total: quiz.questions.length, results: new Array(quiz.questions.length).fill(null), hintStep: {} };
+        qzBind(paper);
+        chatBox.appendChild(wrap);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        return paper;
+    }
+
+    function qzResult(card, cls, html) {
+        const el = card.querySelector('[data-role=result]');
+        el.className = 'q-result show ' + cls;
+        el.innerHTML = html;
+        return el;
+    }
+    function qzSetScore(paper, i, correct) {
+        paper._st.results[i] = { correct, answered: true };
+        const card = paper.querySelector('.q-card[data-i="' + i + '"]');
+        card.classList.remove('done-right', 'done-wrong');
+        if (correct === true) card.classList.add('done-right');
+        if (correct === false) card.classList.add('done-wrong');
+        const rs = paper._st.results.filter(Boolean);
+        const done = rs.filter(x => x.answered).length;
+        const graded = rs.filter(x => x.correct === true || x.correct === false);
+        const right = graded.filter(x => x.correct === true).length;
+        paper.querySelector('[data-role=score]').innerHTML =
+            '已作答 <b>' + done + '</b> / ' + paper._st.total + ' · 判对 <b>' + right + '</b> / ' + graded.length;
+        paper.querySelector('.paper-prog i').style.width = (done / paper._st.total * 100) + '%';
+    }
+    function qzNorm(s) { return String(s == null ? '' : s).toLowerCase().replace(/\s+/g, ' ').trim(); }
+
+    /* ---------- 客观题作答 ---------- */
+    async function qzSubmit(paper, card, i, q) {
+        let correct = null, html = '';
+        if (q.type === 'choice') {
+            const sel = card.querySelector('input[type=radio]:checked');
+            if (!sel) return qzResult(card, 'info', '请先选择一个选项。');
+            const ans = String(q.answer || '').trim().toUpperCase().charAt(0);
+            correct = sel.value === ans;
+            html = (correct ? '✅ <b>回答正确</b>' : '❌ <b>回答错误</b>，正确答案是 <b>' + qzEsc(ans) + '</b>') +
+                '<br><b>解析：</b>' + qzEsc(q.explanation || q.answer).replace(/\n/g, '<br>');
+        } else if (q.type === 'concept') {
+            const val = card.querySelector('[data-role=answer]').value.trim();
+            if (!val) return qzResult(card, 'info', '先写下你的理解，再对照参考答案。');
+            html = '<b>你的作答：</b>' + qzEsc(val).replace(/\n/g, '<br>') +
+                '<br><b>参考答案要点：</b>' + qzEsc(q.answer).replace(/\n/g, '<br>') +
+                (q.explanation ? '<br><b>解析：</b>' + qzEsc(q.explanation).replace(/\n/g, '<br>') : '') +
+                '<br><span style="opacity:.75">简答题由你自己对照评分，不计入自动判分；点「看提示」可看解题方向。</span>';
+        } else if (q.type === 'fill') {
+            const val = card.querySelector('[data-role=answer]').value.trim();
+            if (!val) return qzResult(card, 'info', '先填写 ___ 处的答案。');
+            // 填空允许写法差异：'\0' / \0 / 0 都算对，忽略引号、分号与空白
+            const strip = s => qzNorm(s).replace(/['"`;]/g, '');
+            const v = strip(val), a = strip(q.answer);
+            correct = v === a || (a.length > 0 && v.length > 0 && (v.includes(a) || a.includes(v)));
+            html = (correct ? '✅ <b>填空正确</b>' : '❌ <b>还不对</b>，参考答案：<b>' + qzEsc(q.answer) + '</b>') +
+                '<br><b>解析：</b>' + qzEsc(q.explanation).replace(/\n/g, '<br>');
+        } else if (q.type === 'predict') {
+            const val = card.querySelector('[data-role=answer]').value.trim();
+            if (!val) return qzResult(card, 'info', '先写下你预测的输出（或「运行时崩溃」）。');
+            const v = qzNorm(val), a = qzNorm(q.answer);
+            correct = v === a || (!!q.expectedStdout && v === qzNorm(q.expectedStdout)) ||
+                (val.includes('崩溃') && a.includes('崩溃')) || (val.includes('未定义') && a.includes('崩溃'));
+            html = (correct ? '✅ <b>预测正确</b>' : '❌ <b>预测错误</b>，标准答案：<b>' + qzEsc(q.answer) + '</b>') +
+                '<br><b>解析：</b>' + qzEsc(q.explanation).replace(/\n/g, '<br>');
+        }
+        const el = qzResult(card, correct === true ? 'ok' : correct === false ? 'no' : 'info', html);
+        qzSetScore(paper, i, correct);
+
+        // 预测输出题：再用真实编译器跑一遍，证明答案不是模型编的
+        if (q.type === 'predict' && q.code) {
+            const holder = document.createElement('div');
+            holder.style.marginTop = '8px'; holder.style.opacity = '.8';
+            holder.textContent = '⏳ 正在用 gcc 真实运行这段代码验证答案…';
+            el.appendChild(holder);
+            try {
+                const r = await qzCheck(q.code, q.stdin, q.expectedStdout || q.answer);
+                const ev = r.evidence;
+                if (!ev.env.gcc) holder.textContent = '⚠ 本机未检测到 gcc，跳过运行验证（答案与解析仍可参考）。';
+                else if (!ev.compile.ok) holder.textContent = '⚠ 这段代码本身编译失败：' + ((ev.compile.errors[0] || {}).zh || '请检查语法');
+                else if (ev.run && ev.run.crashed) holder.textContent = '⚠ 真实运行结果：程序崩溃 / 超时。';
+                else holder.innerHTML = '✅ 编译器实际输出：<pre>' + qzEsc((ev.run && ev.run.stdout) || '（空）') + '</pre>';
+            } catch (err) {
+                holder.textContent = '⚠ 编译验证不可用（需启动 3001 本地服务）；答案与解析不受影响。';
+            }
+        }
+    }
+
+    /* ---------- 改错 / 编程题：真编译、真运行、真比对 ---------- */
+    async function qzRun(paper, card, i, q) {
+        const ta = card.querySelector('[data-role=answer]');
+        const code = ta ? ta.value.trim() : '';
+        if (!code) return qzResult(card, 'info', '请先写下你的 C 代码。');
+        const btn = card.querySelector('[data-act=run]');
+        btn.disabled = true; btn.textContent = '编译运行中…';
+        qzResult(card, 'info', '⏳ 正在用 gcc 编译并真实运行你的代码（含 2 秒超时保护）…');
+        try {
+            const r = await qzCheck(code, q.stdin, q.expectedStdout);
+            const ev = r.evidence;
+            const ref = '<br><b>参考思路：</b>' + qzEsc(q.answer).replace(/\n/g, '<br>') +
+                (q.explanation ? '<br><b>解析：</b>' + qzEsc(q.explanation).replace(/\n/g, '<br>') : '');
+            if (!ev.env.gcc) {
+                qzResult(card, 'info', '⚠ 本机未检测到 gcc，无法自动判题（需安装 MinGW-w64 并启动 3001 服务）。' + ref);
+                qzSetScore(paper, i, null);
+                return;
+            }
+            const lines = ['<b>编译：</b>' + (ev.compile.ok ? '✅ 通过' : '❌ 失败 ' + ev.compile.errors.length + ' 处')];
+            if (ev.compile.errors.length) lines.push(ev.compile.errors.slice(0, 3).map(d => '　第 ' + d.line + ' 行 ' + qzEsc(d.zh)).join('<br>'));
+            if (ev.run && ev.run.executed) lines.push('<b>运行：</b>' + (ev.run.crashed ? '❌ 崩溃 / 超时' : '✅ 正常') +
+                ' · 退出码 ' + ev.run.exitCode + '<pre>' + qzEsc(ev.run.stdout || '（无输出）') + '</pre>');
+            if (ev.test.enabled) lines.push('<b>测试比对：</b>' + (ev.test.passed ? '✅ 输出与期望一致' : '❌ ' + qzEsc(ev.test.reason)));
+            const ok = ev.compile.ok && (!ev.test.enabled ? (ev.run && !ev.run.crashed) : ev.test.passed);
+            qzResult(card, ok ? 'ok' : 'no',
+                (ok ? '✅ <b>判题通过</b>' : '❌ <b>还没通过</b>，按下面的编译 / 运行信息继续改') + '<br>' + lines.join('<br>') + ref);
+            qzSetScore(paper, i, !!ok);
+        } catch (err) {
+            qzResult(card, 'info', '⚠ 编译验证不可用（需启动 3001 本地服务）：' + qzEsc(err.message || '') +
+                '<br><b>参考思路：</b>' + qzEsc(q.answer).replace(/\n/g, '<br>') +
+                (q.explanation ? '<br><b>解析：</b>' + qzEsc(q.explanation).replace(/\n/g, '<br>') : ''));
+            qzSetScore(paper, i, null);
+        } finally {
+            btn.disabled = false; btn.textContent = '⚡ 编译运行并判题';
+        }
+    }
+
+    /* ---------- 事件委托：一个监听覆盖整份练习卷 ---------- */
+    function qzBind(paper) {
+        paper.addEventListener('click', async e => {
+            const opt = e.target.closest('.q-opt');
+            if (opt) {
+                const c = opt.closest('.q-card');
+                c.querySelectorAll('.q-opt').forEach(x => x.classList.remove('sel'));
+                opt.classList.add('sel');
+            }
+            const btn = e.target.closest('[data-act]');
+            if (!btn) return;
+            const act = btn.dataset.act;
+            if (act === 'again') { quizModal.classList.add('show'); return; }
+            if (act === 'export') { qzExport(paper); return; }
+            if (act === 'bank') { qzToBank(paper); return; }
+            const i = Number(btn.dataset.i);
+            const card = paper.querySelector('.q-card[data-i="' + i + '"]');
+            const q = paper._quiz.questions[i];
+            if (!card || !q) return;
+            if (act === 'hint') {
+                const hs = q.hints || [], step = paper._st.hintStep[i] || 0;
+                const box = card.querySelector('[data-role=hint]');
+                box.style.display = 'block';
+                if (!hs.length) { box.textContent = '这道题没有额外提示，可以直接看解析。'; return; }
+                box.innerHTML = '💡 提示 ' + Math.min(step + 1, hs.length) + '/' + hs.length + '：' + qzEsc(hs[Math.min(step, hs.length - 1)]);
+                paper._st.hintStep[i] = Math.min(step + 1, hs.length - 1);
+                return;
+            }
+            if (act === 'reveal') {
+                qzResult(card, 'info', '<b>参考答案：</b>' + qzEsc(q.answer).replace(/\n/g, '<br>') +
+                    (q.explanation ? '<br><b>解析：</b>' + qzEsc(q.explanation).replace(/\n/g, '<br>') : ''));
+                return;
+            }
+            if (act === 'submit') { await qzSubmit(paper, card, i, q); return; }
+            if (act === 'run') { await qzRun(paper, card, i, q); return; }
+        });
+    }
+
+    /* ---------- 导出 / 错题入库 ---------- */
+    function qzExport(paper) {
+        const quiz = paper._quiz, cfg = paper._cfg;
+        const L = ['# ' + (quiz.title || cfg.topic + ' 专项练习'), '',
+            '- 知识点：' + cfg.topic, '- 难度：' + cfg.difficulty,
+            '- 题型：' + cfg.types.map(t => QZ_META[t].name).join(' / '),
+            '- 生成时间：' + new Date().toLocaleString(), ''];
+        quiz.questions.forEach((q, i) => {
+            L.push('## Q' + (i + 1) + ' · ' + QZ_META[q.type].name + '（' + q.point + '）', '', q.stem, '');
+            if (q.code) L.push('```c', q.code, '```', '');
+            if (q.options.length) L.push(...q.options, '');
+            if (q.stdin || q.expectedStdout) L.push('- 测试输入：`' + q.stdin + '`', '- 期望输出：`' + q.expectedStdout + '`', '');
+            const r = paper._st.results[i];
+            if (r && r.answered) L.push('- 本次作答：' + (r.correct === true ? '✅ 正确' : r.correct === false ? '❌ 错误' : '已自评'));
+            L.push('**参考答案**：' + q.answer, '', '**解析**：' + q.explanation, '');
+            if (q.hints.length) L.push('> 提示：' + q.hints.join(' / '), '');
+        });
+        const blob = new Blob([L.join('\n')], { type: 'text/markdown;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'C语言练习卷_' + cfg.topic + '_' + new Date().toISOString().slice(0, 10) + '.md';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        addMsg('📥 练习卷已导出为 Markdown', false, true);
+    }
+    function qzToBank(paper) {
+        const wrong = paper._st.results.map((r, i) => ({ r, i })).filter(x => x.r && x.r.correct === false);
+        if (!wrong.length) { addMsg('ℹ️ 目前还没有判错的题目，先做几题再收进错题本吧。', false, true); return; }
+        wrong.forEach(({ i }) => {
+            const q = paper._quiz.questions[i];
+            const html = '<p>【' + qzEsc(QZ_META[q.type].name) + '】' + qzEsc(q.stem).replace(/\n/g, '<br>') + '</p>' +
+                (q.code ? '<pre style="white-space:pre-wrap;background:rgba(0,0,0,.25);padding:10px;border-radius:8px">' + qzEsc(q.code) + '</pre>' : '') +
+                '<p><b>参考答案：</b>' + qzEsc(q.answer).replace(/\n/g, '<br>') + '</p>' +
+                '<p><b>解析：</b>' + qzEsc(q.explanation).replace(/\n/g, '<br>') + '</p>';
+            questionBank.unshift({
+                id: 'qz_' + Date.now() + '_' + i, topic: q.point || paper._cfg.topic, content: html,
+                time: new Date().toLocaleString(), wrongCount: 1, rightCount: 0, level: 0,
+                mastered: false, lastReview: 0, practiceLog: [], source: 'quiz'
+            });
+        });
+        localStorage.setItem('myQuestionBank', JSON.stringify(questionBank));
+        updateKbBadge(); updateReviewBadge();
+        addMsg('📚 已把 ' + wrong.length + ' 道错题收进题库，可在「我的题库 / 学习看板」按间隔复习。', false, true);
+    }
+
+    /* ---------- 出卷主流程：服务自检 → 流式生成 → 失败自动秒开内置真题 ---------- */
+    const QZ_TIMEOUT = 240000;   // 本地小模型上限 4 分钟，期间可随时切内置题
+    let qzGenerating = false, qzAbort = null, qzTimer = null, qzSettled = false;
+    const qzConfirmBtn = document.getElementById('confirmQuizBtn');
+
+    function qzFinishGen() {
+        qzGenerating = false;
+        if (qzTimer) { clearTimeout(qzTimer); qzTimer = null; }
+        qzAbort = null;
+        qzConfirmBtn.disabled = false;
+        qzConfirmBtn.textContent = '✦ AI 生成练习卷';
+        removeLoading();
+    }
+
+    function qzUpdateLoading(text, cfg) {
+        const el = document.querySelector('#loadingMsg .bubble');
+        if (!el) return;
+        el.innerHTML = '<div style="color:rgba(148,163,184,.85)">' + qzEsc(text) + '</div>' +
+            '<button type="button" id="qzUseBuiltinNow" style="margin-top:10px;padding:7px 14px;border-radius:9px;' +
+            'border:1px solid rgba(52,211,153,.4);background:rgba(52,211,153,.10);color:#6ee7b7;font-size:12px;cursor:pointer">' +
+            '⚡ 不等了，直接用内置 C 真题</button>';
+        const b = document.getElementById('qzUseBuiltinNow');
+        if (b) b.onclick = () => {
+            if (qzAbort) qzAbort.abort();
+            qzFallback('已手动切换', cfg);
+        };
+    }
+
+    // 生成前 2 秒自检，服务没起 / 模型没拉时不让学生白等几分钟
+    async function qzCheckLocal() {
+        try {
+            const r = await fetch('http://localhost:3001/api/ollama/status', { signal: AbortSignal.timeout(4000) });
+            if (!r.ok) return { ok: false, reason: '3001 本地服务返回 HTTP ' + r.status };
+            return await r.json();
+        } catch (e) {
+            return { ok: false, reason: '连不上 3001 本地服务。请在项目根目录运行 node server/server-ollama.js（改过后端代码后必须重启服务）' };
+        }
+    }
+
+    // 无论 AI 因为什么失败，练习都不中断：直接秒开内置精编 C 真题
+    function qzFallback(reason, cfg) {
+        if (qzSettled) return;
+        qzSettled = true;
+        qzFinishGen();
+        const paper = qzBuiltin(cfg);
+        qzRenderPaper(paper, cfg);
+        addMsg('⚠️ AI 出题没成功：' + reason + String.fromCharCode(10) + String.fromCharCode(10) +
+            '已自动秒开 ' + paper.questions.length + ' 道内置精编 C 真题，练习可以照常进行。' + String.fromCharCode(10) +
+            '恢复 AI 出题：本地模式 → ① 启动 Ollama 并确认已拉取 qwen3:4b；② 在项目根目录运行 node server/server-ollama.js（改过后端代码必须重启）；' +
+            '联网模式 → 确认 3000 服务与模型令牌正常。也可以直接切到左侧另一个模型再试。', false, true);
+        recordQA('生成【' + cfg.topic + '】练习卷（AI 不可用，已用内置题）',
+            paper.questions.map((q, i) => 'Q' + (i + 1) + ' ' + q.stem).join(String.fromCharCode(10)), '出题', cfg.topic);
+    }
+
+    // 统一处理模型返回：可解析 → 成卷；截断 JSON / 纯 Markdown / 空内容 → 各自降级
+    function qzDeliver(text, cfg) {
+        if (qzSettled) return;
+        const quiz = qzParse(text);
+        if (!quiz) {
+            const r = String(text || '');
+            if (r.trim().charAt(0) === '{') {
+                qzSettled = true; qzFinishGen();
+                addMsg('⚠️ 模型返回的题目格式不完整（生成被截断），已自动换成内置精编 C 真题。想要 AI 新题可减少题量或切联网模式。', false, true);
+                const paper = qzBuiltin(cfg); qzRenderPaper(paper, cfg);
+                recordQA('生成【' + cfg.topic + '】练习卷（格式不完整，已用内置题）', '', '出题', cfg.topic);
+            } else if (r.trim()) {
+                qzSettled = true; qzFinishGen();
+                qzLegacy(r, cfg.topic);     // 在线模式返回普通 Markdown 试卷，保留旧能力
+            } else {
+                qzFallback('模型没有返回内容', cfg);
+            }
+            return;
+        }
+        qzSettled = true;
+        qzFinishGen();
+        const short = cfg.count - quiz.questions.length;
+        if (short > 0) {
+            quiz.questions = quiz.questions.concat(
+                qzBuiltin(cfg).questions.filter(x => !quiz.questions.some(y => y.stem === x.stem)).slice(0, short));
+        }
+        qzRenderPaper(quiz, cfg);
+        if (short > 0) addMsg('ℹ️ 模型完整输出 ' + (cfg.count - short) + ' 题，已用内置精编 C 真题补足到 ' + quiz.questions.length + ' 题。', false, true);
+        recordQA('生成【' + cfg.topic + '】练习卷',
+            quiz.questions.map((q, i) => 'Q' + (i + 1) + ' [' + QZ_META[q.type].name + '] ' + q.stem).join(String.fromCharCode(10)),
+            '出题', cfg.topic);
+    }
+
+    qzConfirmBtn.onclick = async function () {
+        if (qzGenerating) return;
+        const topic = quizTopic.value.trim();
+        if (!topic) { alert('请输入或点选一个练习知识点！'); return; }
+        const cfg = qzConfig(topic);
+        if (!cfg.types.length) { alert('请至少勾选一种题型！'); return; }
+        qzSavePrefs(cfg);
         quizModal.classList.remove('show');
         exportQuizBtn.style.display = 'none';
         lastQuizTopic = topic;
 
-        const prompt = `你现在是一个C语言出题老师。请围绕【${topic}】这个知识点出一套试卷。严格包含单选题、改错题、编程题。必须包含答案解析。请使用 Markdown 格式排版。`;
+        qzSettled = false;
+        qzGenerating = true;
+        qzConfirmBtn.disabled = true;
+        qzConfirmBtn.textContent = '✦ 生成中…';
 
-        addMsg(`请帮我出关于【${topic}】的题目`, true);
-        showLoading();
+        addMsg('请帮我出一套关于【' + topic + '】的 ' + cfg.types.map(t => QZ_META[t].name).join('、') +
+            ' 练习卷（' + cfg.count + ' 题，' + cfg.difficulty + '）', true);
+        const waitHint = useLocalKb
+            ? '本地 qwen3:4b 正在写题，首次约需 1~2 分钟；生成中可随时切到内置真题。'
+            : '云端模型正在写题；生成中可随时切到内置真题。';
+        qzLoading('正在生成【' + topic + '】练习卷（' + cfg.count + ' 题）… ' + waitHint);
+        qzUpdateLoading('正在生成【' + topic + '】练习卷（' + cfg.count + ' 题）… ' + waitHint, cfg);
 
+        if (useLocalKb) {
+            qzUpdateLoading('正在检查本地模型服务（3001 / Ollama / qwen3:4b）…', cfg);
+            const st = await qzCheckLocal();
+            if (!st.ok || !st.ready) { qzFallback(st.reason || '本地模型未就绪', cfg); return; }
+        }
+
+        const ctrl = new AbortController();
+        qzAbort = ctrl;
+        qzTimer = setTimeout(() => ctrl.abort(Object.assign(new Error('timeout'), { name: 'TimeoutError' })), QZ_TIMEOUT);
+        let partial = '', lastPaint = 0;
         try {
-            const payloadExtra = (useLocalKb && pdfText) ? { pdfText } : {};
-            if (useLocalKb && kbQaEnabled) payloadExtra.kbEnabled = true;
-            payloadExtra.history = getContextHistory();   // F2：出题也延续当前会话主题
-            const data = await requestAI(prompt, useLocalKb, payloadExtra);
-
-            removeLoading();
-            if (data.reply) {
-                addMsg(data.reply, false, false);
-                lastQuizContent = data.reply;
-                recordQA(`请帮我出关于【${topic}】的题目`, data.reply, '出题', topic);
-                exportQuizBtn.style.display = 'block';
+            let full;
+            if (useLocalKb) {
+                // 流式：模型边写边推，进度可见，也不会因为长时间无响应被浏览器/代理判超时
+                full = await requestAIStream(qzPrompt(cfg), true,
+                    { task: 'quiz', quizCount: cfg.count },
+                    txt => {
+                        partial = txt;
+                        if (txt.length - lastPaint < 150) return;
+                        lastPaint = txt.length;
+                        const done = (txt.match(/"stem"\s*:/g) || []).length;
+                        qzUpdateLoading('AI 正在写题… 已生成 ' + txt.length + ' 字 / 约 ' + done + ' 题', cfg);
+                    }, ctrl.signal);
+            } else {
+                const data = await requestAI(qzPrompt(cfg), false, { task: 'quiz', quizCount: cfg.count }, ctrl.signal);
+                if (data.error) throw new Error(data.error);
+                full = data.reply || '';
             }
-            else if (data.error) addMsg(`❌ 错误：${data.error}`, false, true);
-        } catch (error) {
-            removeLoading();
-            addMsg(`❌ 网络连接失败！`, false, true);
+            qzDeliver(full, cfg);
+        } catch (err) {
+            if (qzSettled) return;
+            // 超时 / 断线时，从已经收到的半份 JSON 里抢救出写完整的题目
+            const salvaged = qzParse(partial);
+            if (salvaged && salvaged.questions.length) {
+                addMsg('⏱ 生成中断，已从已写出的内容抢救出 ' + salvaged.questions.length + ' 道题，不足部分用内置题补足。', false, true);
+                qzDeliver(JSON.stringify(salvaged), cfg);
+                return;
+            }
+            const msg = (err && err.name === 'AbortError') ? '生成超时或被取消'
+                : (err && err.message) || '网络或服务异常';
+            qzFallback(msg, cfg);
         }
     };
+
+    // 降级：模型没返回合法 JSON（常见于在线模式）时，保留原来的 Markdown 试卷展示与导出
+    function qzLegacy(reply, topic) {
+        if (!reply) { addMsg('⚠️ 模型没有返回内容，请重试。', false, true); return; }
+        addMsg(reply, false, false);
+        lastQuizContent = reply;
+        recordQA('请帮我出关于【' + topic + '】的题目', reply, '出题', topic);
+        exportQuizBtn.style.display = 'block';
+        addMsg('ℹ️ 本次返回的是普通文本试卷（未解析成可交互练习卷），已按原有方式展示与导出。切换到「本地知识库访问 / Ollama」模式重试，可获得能逐题作答、自动判分的练习卷。', false, true);
+    }
 
     exportQuizBtn.onclick = function() {
         if (!lastQuizContent) return;
