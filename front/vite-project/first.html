@@ -679,6 +679,34 @@
             </div>
         </article>
 
+        <!-- 11 C 代码体检舱（本轮新增，横跨整行重点展示） -->
+        <article class="adv-card adv-g reveal" style="grid-column:1/-1;background:linear-gradient(135deg,rgba(52,211,153,.075),rgba(34,211,238,.035) 60%,rgba(255,255,255,.02))">
+            <span class="adv-num">11</span>
+            <div class="adv-top">
+                <div class="adv-icon">🧬</div>
+                <div>
+                    <div class="adv-title">C 代码体检舱 <em style="font-style:normal;font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(52,211,153,.16);color:#34d399;border:1px solid rgba(52,211,153,.3);vertical-align:middle;margin-left:8px">NEW</em></div>
+                    <span class="adv-tag">EVIDENCE-BASED · 上传自己的 .c 代码，四层证据判卷</span>
+                </div>
+            </div>
+            <p class="adv-desc">把「学 C」从听解释变成真动手：上传或粘贴自己写的 C 代码，系统依次执行 <b>gcc -Wall -Wextra 编译诊断</b> → <b>带 stdin 真实运行（含段错误 / 超时捕获）</b> → <b>AddressSanitizer / UBSan 内存与未定义行为检测</b> → <b>十余条 C 专属静态风险规则 + 期望输出自动比对</b>，先拿到四层客观证据并算出可复现的评分，再让本地模型以「教练」身份只给最小修改提示、不直接给出完整答案。支持中文报错翻译、点击问题跳转代码行、导出 Markdown 体检报告、一键收进错题本；未装编译器或未启动 Ollama 时自动降级，不白屏。这些编译期报错、段错误、指针越界与内存泄漏问题，都是 C 语言独有的问题域。</p>
+            <div class="adv-deco" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:16px">
+                <span class="file-pill">L1 编译诊断</span>
+                <span style="color:rgba(52,211,153,.6)">→</span>
+                <span class="file-pill">L2 真实运行</span>
+                <span style="color:rgba(52,211,153,.6)">→</span>
+                <span class="file-pill">L3 Sanitizer</span>
+                <span style="color:rgba(52,211,153,.6)">→</span>
+                <span class="file-pill">L4 静态规则 / 判题</span>
+                <span style="color:rgba(52,211,153,.6)">→</span>
+                <span class="file-pill" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3)">✦ AI 教练只给提示</span>
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+                <a href="review.html" style="font-size:12px;color:#04140f;font-weight:600;padding:9px 18px;border-radius:10px;background:linear-gradient(120deg,#34d399,#22d3ee)">打开代码体检舱 →</a>
+                <span style="font-size:11px;color:rgba(203,213,225,.55);align-self:center">代码只在本机临时目录编译，2 秒超时 + 进程树终止，不上传云端</span>
+            </div>
+        </article>
+
     </section>
 
     <!-- 收尾行动区 -->
