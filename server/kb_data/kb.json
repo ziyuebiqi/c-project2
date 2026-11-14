@@ -1,0 +1,397 @@
+{
+  "docs": [
+    {
+      "id": "d_1794017080094_8614",
+      "name": "chap04_循环结构.pdf",
+      "ext": ".pdf",
+      "size": 693561,
+      "time": "2026/11/7 10:04:40",
+      "enabled": true,
+      "charCount": 11589,
+      "chunkCount": 27
+    },
+    {
+      "id": "d_1794017080413_5547",
+      "name": "chap03_分支结构 .pdf",
+      "ext": ".pdf",
+      "size": 667788,
+      "time": "2026/11/7 10:04:40",
+      "enabled": true,
+      "charCount": 11278,
+      "chunkCount": 26
+    }
+  ],
+  "chunks": [
+    {
+      "id": "d_1794017080094_8614_c0",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 0,
+      "text": "第 四 章 循环结构\n4.1 用格雷戈里公式求π的近似值 (while语句)\n4.2 统计一个整数的位数 (do-while语句)\n4.3 判断素数 (break 和 continue 语句)\n4.4 求1!+2!+...+100! (循环嵌套)\n4.5 循环结构程序设计\n-- 1 of 46 --\n本章要点\n◼ 什么是循环? 为什么要使用循环? 如何实现循环?\n◼ 实现循环时，如何确定循环条件和循环体?\n◼ 怎样使用while 和do-while语句实现次数不确定的\n循环?\n◼ while 和do-while语句有什么不同?\n◼ 如何使用break语句处理多循环条件?\n◼ 如何实现多重循环?\n-- 2 of 46 --\n4.1 用格里高利公式求π的近似值\n例4-1 使用格雷戈里公式求π的近似值，要\n求精确到最后一项的绝对值小于10–4。\n4.1.1 程序解析\n4.1.2 while语句\n1 1 1\n1\n4 3 5 7\n\n− + − + = \n-- 3 of 46 --"
+    },
+    {
+      "id": "d_1794017080094_8614_c1",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 1,
+      "text": "#include <math.h>\nint main(void)\n{\nint denominator, flag;\ndouble item, pi;\nflag = 1; denominator = 1; item = 1.0; pi = 0;\nwhile(fabs (item) >= 0.0001) {\nitem = flag * 1.0 / denominator;\npi = pi + item;\nflag = -flag;\ndenominator = denominator + 2;\n}\npi = pi * 4;\nprintf ( “pi = %f\\n”, pi);\nreturn 0;\n}\n4.1.1 程序解析－求π的近似值\npi = 3.141613\nitem=0.0 ?\nfabs(item) < 0.0001\n-- 4 of 46 --\n4.1.2 while 语句\nwhile (条件)\n循环体语句;\n真\n假\nwhile下一条语句\n表达式\n循环体语句\n循环条件\n循环体\n一条语句"
+    },
+    {
+      "id": "d_1794017080094_8614_c2",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 2,
+      "text": "-- 5 of 46 --\nwhile 语句和for语句\n都是在循环前先判断条件\nwhile 语句说明\n表达式1；\nwhile (表达式2) {\nfor的循环体语句；\n表达式3；\n}\n把for语句改写成while语句\nfor(表达式1; 表达式2; 表达式3)\n循环体语句\n-- 6 of 46 --\nwhile 和 for 的比较\nfor (i = 1; i <= 10; i++)\nsum = sum + i;\ni = 1; 循环变量赋初值\nwhile (i <= 10){ 循环条件\nsum = sum + i;\ni++; 循环变量的改变\n}\n循环体\n-- 7 of 46 --\n例4-2 从键盘输入一批学生的成绩，计算平均\n成绩，并统计不及格学生的人数。\n分析：\n 求累加和\n 确定循环条件\n◼ 不知道输入数据的个数，无法事先确定循环次数\n◼ 用一个特殊的数据作为正常输入数据的结束标志，\n比如选用一个负数作为结束标志。\n 循环的三种常见的控制方式\n◼ 计数控制的循环"
+    },
+    {
+      "id": "d_1794017080094_8614_c3",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 3,
+      "text": "◼ 条件控制的循环\n◼ 标记控制的循环\n-- 8 of 46 --\n#include <stdio.h>\nInt main(void)\n{ int num;\ndouble grade, total;\nnum = 0; total = 0;\nprintf(\"Enter grades: \\n\");\nscanf(\"%lf\", &grade); /* 输入第1个数*/\nwhile (grade >= 0) { /* 输入负数，循环结束 */\ntotal = total + grade;\nnum++;\nif(grade < 60) count++;\nscanf (“%lf”, &grade);\n}\nif(num != 0) {\nprintf(\"Grade average is %.2f\\n\", total/num);\nprintf(\"Number of failures is %d\\n\", count);\n}\nelse\nprintf(\"Grade average is 0\\n\");"
+    },
+    {
+      "id": "d_1794017080094_8614_c4",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 4,
+      "text": "return 0;\n}\nEnter grades: 67 88 73 54 82 -1\nGrade average is 72.80\nNumber of failures is 1\n-- 9 of 46 --\n练习：\n◼ 4-3\n-- 10 of 46 --\n4.2 统计一个整数的位数\n例4-3 从键盘读入一个整数，统计该数的\n位数。\n4.2.1 程序解析\n4.2.2 do - while语句\n-- 11 of 46 --\nint main(void)\n{ int count, number;\ncount = 0;\nprintf (\"Enter a number: \");\nscanf (\"%d\", &number) ;\nif (number < 0) number = -number;\ndo {\nnumber = number / 10;\ncount ++;\n} while (number != 0);"
+    },
+    {
+      "id": "d_1794017080094_8614_c5",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 5,
+      "text": "printf (\"It contains %d digits.\\n\", count);\nreturn 0;\n}\n4.2.1 程序解析－统计一个整数的位数\nEnter a number: 12534\nIt contains 5 digits.\nEnter a number: -99\nIt contains 2 digits.\nEnter a number: 0\nIt contains 1 digits.\nwhile (number != 0) {\nnumber = number / 10;\ncount ++;\n}\n-- 12 of 46 --\n4.2.2 do - while 语句\ndo {\n循环体语句\n} while (表达式) 先循环\n后判断 真\n假\n表达式\n循环体语句\ndo-while的下一条语句\n-- 13 of 46 --\n◼ while: 先判别条件，再决定是否循环；\n◼ do-while: 先至少循环一次，然后再根据循\n环的结果决定是否继续循环。"
+    },
+    {
+      "id": "d_1794017080094_8614_c6",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 6,
+      "text": "while 和 do-while 的比较\n真\n假\n表达式\n循环体语句\ndo-while的下一条语句\n真\n假\nwhile的下一条语句\n表达式\n循环体语句\n-- 14 of 46 --\n4.3 判断素数\n例4-4 输入一个正整数m，判断它是否为\n素数。\n4.3.1 程序解析\n4.3.2 break语句 和continue语句\n-- 15 of 46 --\n4.3.1 程序解析－判断素数\n算法：除了1和m，不能被其它数整除。\n设 i 取值 [2, m-1]\n◼ 如果m不能被该区间上的任何一个数整除，即对\n每个i，m%i 都不为0，则m是素数\n◼ 只要找到一个i，使m%i为0，则m肯定不是素数\nm %2 %3 %4 %5 %(m-1)\n不是素数 || =0 =0\n是素数 && !=0 !=0\nm不可能被大于 m/2 的数整除\ni 取值 [2, m-1] 、 [2, m/2] 、 [2, ] m\nfor(i = 2; i <= m/2; i++)\nif(m % i == 0) break;"
+    },
+    {
+      "id": "d_1794017080094_8614_c7",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 7,
+      "text": "if(i > m/2) printf(\"yes\\n\")\nelse printf(\"no\\n”);\n-- 16 of 46 --\nint main(void)\n{ int i, m;\nprintf(“Enter a number: \");\nscanf (\"%d\", &m);\nfor (i = 2; i <= m/2; i++)\nif (m % i == 0) break;\nif (i > m/2 && m != 1 )\nprintf(\"%d is a prime number! \\n\", m);\nelse\nprintf(\"No!\\n\");\n}\n例4-4源程序－判断素数 Enter a number: 9\nNo\nEnter a number: 11\n11 is a prime number!\nfor (i = 2; i <= m/2; i++)\nif (m % i == 0) printf(\"No!\\n\");"
+    },
+    {
+      "id": "d_1794017080094_8614_c8",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 8,
+      "text": "else printf(\"%d is a prime number! \\n\", m);\n循环条件?\n循环的结束条件?\n-- 17 of 46 --\n4.3.2 break 语句\nwhile(exp){\n语句1\nif (expb)\nbreak;\n语句2\n}\n真\n假\nexp\n语句1\n假\nexpb\n语句2\n循\n环\n体\n真\nfor (i = 2; i <= m/2; i++)\nif (m % i == 0) break;\nif (i > m/2 ) printf(\"Yes\");\nelse printf(\"No!\\n\");\n当循环有多个出口时：\n• 表示循环条件\n• 区分结束条件\nfor(i = 2; i <= m/2; i++)\nif(m%i == 0){\nprintf(\"No!\\n\");\nbreak;\n}\nprintf(\"Yes\");\n-- 18 of 46 --\ncontinue 语句\nwhile(exp){\n语句1\nif (expb)\ncontinue;\n语句2\n}\n真\n假\nexp\n语句1"
+    },
+    {
+      "id": "d_1794017080094_8614_c9",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 9,
+      "text": "假\nexpb\n语句2\n循\n环\n体\n真\n跳过continue后面的语句，继续下一次循环\n-- 19 of 46 --\nbreak和continue\n#include \"stdio.h\"\nint main(void)\n{ char c;\nint i;\nfor (i = 0; i < 10; i++) {\nc = getchar();\nif (c == '\\n') break;\nputchar(c);\n}\n}\nabc\nefgh\n123\nabc\nabcefgh1 continue;\n-- 20 of 46 --\nbreak和continue\n输出100~200之间所有能被3整除的数\nfor(i = 100;i <= 200; i++) {\nif( i % 3 != 0 )\ncontinue;\nprintf(“%d ”, i);\n}\nfor(i = 100; i <= 200; i++)\nif(i % 3 == 0)\nprintf(“%d ”, i);\n-- 21 of 46 --"
+    },
+    {
+      "id": "d_1794017080094_8614_c10",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 10,
+      "text": "例4-5-1 简单的猜数游戏，最多允许猜7次。\n# include <stdio.h>\nint main(void)\n{ int count = 0, flag, mynumber, yournumber;\nmynumber = 38; /* 计算机指定被猜的数 */\nflag = 0; /* flag: 为0表示没猜中，为1表示猜中了*/\nfor(count = 1; count <= 7; count++) {\nprintf(\"Enter your number: \"); scanf(\"%d\", &yournumber);\nif(yournumber == mynumber) {\nprintf(\"Lucky You!\\n\");\nflag = 1;\nbreak; /* 已猜中，游戏结束，终止循环 */\n}\nelse\nif(yournumber > mynumber ) printf(\"Too big\\n\");\nelse printf(\"Too small\\n\");\n}"
+    },
+    {
+      "id": "d_1794017080094_8614_c11",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 11,
+      "text": "if (flag == 0) printf(\"Game Over!\\n\");\nreturn 0;\n}\n-- 22 of 46 --\nint main(void)\n{ int i, m;\nprintf(“Enter a number: \");\nscanf (\"%d\", &m);\nfor (i = 2; i <= m/2; i++)\nif (m % i == 0)\nbreak;\nif (i > m/2 && m != 1 )\nprintf(\"Yes\\n\");\nelse\nprintf(\"No\\n\");\n}\n修改例4-4源程序－判断素数\nint main(void)\n{ int i, flag = 1, m;\nprintf(“Enter a number: \");\nscanf (\"%d\", &m);\nif(m == 1) flag = 0;\nfor (i = 2; i <= m/2; i++)\nif (m % i == 0){\nflag = 0;\nbreak;\n}"
+    },
+    {
+      "id": "d_1794017080094_8614_c12",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 12,
+      "text": "if (flag == 1) printf(\"Yes\\n\");\nelse printf(\"No\\n\");\n}\n-- 23 of 46 --\n例4-5-2 简单的猜数游戏，最多允许猜7次。\n# include<stdlib.h>\n# include<time.h>\nint main(void)\n{ int count = 0, flag = 0, mynumber, yournumber;\nsrand(time(0));\nmynumber = rand()%100+1; /* 随机产生一个1~100之间的被猜数 */\nwhile(count < 7){\nprintf(\"Enter your number: \"); scanf(\"%d\", &yournumber);\ncount++;\nif(yournumber == mynumber) {\nprintf(“Lucky You!\\n”); flag = 1; break;\n}\nelse"
+    },
+    {
+      "id": "d_1794017080094_8614_c13",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 13,
+      "text": "if(yournumber>mynumber ) printf(\"Too big\\n\");\nelse printf(\"Too small\\n\");\n}\nif (flag == 0) printf(\"Game Over!\\n\");\nreturn 0;\n}\n-- 24 of 46 --\n练习：\n◼ 4-6\n-- 25 of 46 --\n4.4 求1! + 2! + … + 100!\nfor (i = 1; i <= 100; i++){\nitem = i !\nsum = sum + item;\n}\n4.4.1 程序解析\n调用函数 fact(i) 计算 i 的阶乘\n4.4.2 嵌套循环\n用循环计算 i 的阶乘\n-- 26 of 46 --\n#include <stdio.h>\ndouble fact (int n);\nint main(void)\n{ int i;\ndouble sum;\nsum = 0;\nfor ( i = 1; i <= 100; i++ )"
+    },
+    {
+      "id": "d_1794017080094_8614_c14",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 14,
+      "text": "sum = sum + fact (i);\nprintf(\"1! + 2! + 3! + … + 100! = %e\\n\", sum);\nreturn 0;\n}\ndouble fact (int n)\n{ int i;\ndouble result = 1;\nfor ( i = 1; i <= n; i++)\nresult = result * i ;\nreturn result ;\n}\n4.4.1 程序解析\n求1! + 2! + …. + 100!\n1! + 2! + … + 100! = 9.426900e+157\n-- 27 of 46 --\n4.4.2 嵌套循环\nfor ( i = 1; i <= 100; i++ ){\nitem = i !\nsum = sum + item;\n}\nfor ( i = 1; i <= 100; i++ ) {\nitem = 1;\nfor (j = 1; j <= i; j++)\nitem = item * j;\nsum = sum + item;"
+    },
+    {
+      "id": "d_1794017080094_8614_c15",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 15,
+      "text": "}\n-- 28 of 46 --\n#include <stdio.h>\nint main(void)\n{ int i, j;\ndouble item, sum; /* item 存放阶乘 */\nsum = 0;\nfor( i = 1; i <= 100; i++ ) {\nitem = 1; /* 每次求阶乘都从1开始 */\nfor ( j = 1; j <= i; j++ ) /* 内层循环算出 item = i! */\nitem = item * j;\nsum = sum + item;\n}\nprintf(\"1! + 2! + 3! + … + 100! = %e\\n\", sum);\n}\n例4-7 源程序\n-- 29 of 46 --\n内层循环的初始化\nfor ( i = 1; i <= 100; i++ ) {\nitem = 1;\nfor ( j = 1; j <= i; j++ )\nitem = item * j;\nsum = sum + item;\n}"
+    },
+    {
+      "id": "d_1794017080094_8614_c16",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 16,
+      "text": "求1! + 2! + … + 100!\nitem = 1;\nfor( i = 1; i <= 100; i++ ){\nfor ( j = 1; j <= i; j++ )\nitem = item * j;\nsum = sum + item;\n}\n求1! + 1!*2! + …… + 1!*2!*……*100!\n-- 30 of 46 --\n分析嵌套循环的执行过程\nfor(i = 1; i <= 100; i++) {\nitem = 1;\nfor (j = 1; j <= i; j++)\nitem = item * j;\nsum = sum + item;\n}  外层循环变量 i 的每个值\n内层循环变量 j 变化一个轮次；\n 内外层循环变量不能相同\n分别用 i 和 j\n-- 31 of 46 --\ni = 1 j = 1 输出 1 1 （第 1 次输出）\nj = 1 输出 2 1 （第 2 次输出） i = 2\nj = 2 输出 2 2 （第 3 次输出）\n…………"
+    },
+    {
+      "id": "d_1794017080094_8614_c17",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 17,
+      "text": "j = 1 输出 100 1 （第 4951 次输出）\nj = 2 输出 100 2 （第 4952 次输出）\n……\ni = 100\nj = 100 输出 100 100 （第 5050 次输出）\nfor (i = 1; i <= 100; i++)\nfor (j = 1; j <= i; j++)\nprintf (\"%d %d\\n\", i, j );\n-- 32 of 46 --\n练习：\n◼ 4-7\n-- 33 of 46 --\n4.5 循环结构程序设计\n◼ 循环程序的实现要点：\n 归纳出哪些操作需要反复执行？ 循环体\n 这些操作在什么情况下重复执行？ 循环条件\n◼ 选用合适的循环语句\nfor while do-while\n◼ 循环具体实现时考虑（循环条件）：\n 事先给定循环次数，首选for\n 通 过 其 他 条 件 控 制 循 环 ， 考 虑 while 或 do-\nwhile\n-- 34 of 46 --\n循环语句的选择\nif（循环次数已知）\n使用for语句"
+    },
+    {
+      "id": "d_1794017080094_8614_c18",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 18,
+      "text": "else /* 循环次数未知 */\nif (循环条件在进入循环时明确)\n使用while语句\nelse /* 循环条件需要在循环体中明确 */\n使用do-while语句\n-- 35 of 46 --\n#include <stdio.h>\nint main(void)\n{ int i, mark, max, n;\nprintf(\"Enter n: \"); scanf (\"%d\", &n);\nprintf(\"Enter %d marks: \", n);\nscanf (\"%d\", &mark); /* 读入第一个成绩 */\nmax = mark; /* 假设第一个成绩是最高分 */\nfor (i = 1; i < n; i++ ){\nscanf (\"%d\", &mark);\nif (max < mark)\nmax = mark;\n}\nprintf(\"Max = %d\\n\", max);\nreturn 0;\n}\n例4-8 输入一批学生的成绩，求最高分(for)\nmark max\nmax\nmark"
+    },
+    {
+      "id": "d_1794017080094_8614_c19",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 19,
+      "text": "Enter n: 5\nEnter 5 maks:67 88 73 54 82\nMax = 88\nEnter n: 0\n-- 36 of 46 --\n#include <stdio.h>\nint main(void)\n{ int mark, max;\nprintf(“Enter marks:\");\nscanf (\"%d\", &mark); /* 读入第一个成绩 */\nmax = mark; /* 假设第一个成绩最高分 */\nwhile (mark >= 0){\nif(max < mark)\nmax = mark ;\nscanf (\"%d\", &mark );\n};\nprintf(\"Max = %d\\n\", max);\nreturn 0;\n}\n例4-8 输入一批学生的成绩，求最高分(while)\nEnter marks:67 88 73 54 82 -1\nMax = 88\nEnter marks:-1\n-- 37 of 46 --\n#include <stdio.h>"
+    },
+    {
+      "id": "d_1794017080094_8614_c20",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 20,
+      "text": "int main(void)\n{ int mark, max;\nmax = -1; /* 给max赋一个小初值*/\nprintf ( \"Enter marks: \" );\ndo {\nscanf ( \"%d\", &mark );\nif ( max < mark )\nmax = mark;\n} while ( mark >= 0 );\nprintf ( \"Max = %d\\n \", max);\n}\n例4-8 输入一批学生的成绩，求最高分(do-while)\nEnter marks: 67 88 73 54 82 -1\nMax = 88\nEnter marks: -1\n-- 38 of 46 --\n例4-9 逆序问题。将一个正整数逆序输出\n确定：循环条件和循环体(循环不变式)\n12345 5 4 3 2 1\n12345 % 10 = 5 12345 / 10 = 1234\n1234 % 10 = 4 1234 / 10 = 123\n123 % 10 = 3 123 / 10 = 12"
+    },
+    {
+      "id": "d_1794017080094_8614_c21",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 21,
+      "text": "12 % 10 = 2 12 / 10 = 1\n1 % 10 = 1 1 / 10 = 0 结束\n循环不变式 x%10 x=x/10\n循环结束条件 x==0\nscanf ( \"%d\", &x );\nwhile ( x != 0 ){\ndigit = x %10;\nx = x/10 ;\nprintf ( \"%d \", digit );\n}\n用do-while\n实现？\n-- 39 of 46 --\n例4-10 求100以内的全部素数，每行输出10个\nfor (m = 2; m <= 100; m++)\nif (m是素数) printf( \"%d\", m);\nn = sqrt(m);\nfor(i = 2; i <= n; i++)\nif(m % i == 0) break;\nif(i > n) printf(\"yes\\n\")\nelse printf(\"no\\n”);\nfor (m = 2; m <= 100; m++){\nn=sqrt(m);\nfor(i = 2; i <= n; i++)"
+    },
+    {
+      "id": "d_1794017080094_8614_c22",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 22,
+      "text": "if(m % i == 0) break;\nif(i > n) printf(\"%d\", m)\n}\n-- 40 of 46 --\n例4-10 源程序\n#include <stdio.h>\n#include <math.h>\nint main(void)\n{ int count, i, m, n;\ncount = 0;\nfor (m = 2; m <= 100; m++){\nn = sqrt(m);\nfor (i = 2; i <= n; i++)\nif(m % i == 0) break;\nif(i > n){ /* 如果m是素数 */\nprintf(\"%6d\", m);\ncount++; /* 每行10个的处理 */\nif (count %10 == 0) printf(“\\n”);\n}\n}\n}\n2 3 5 7 11 13 17 19 23 29\n31 37 41 43 47 53 59 61 67 71\n73 79 83 89 97\n-- 41 of 46 --"
+    },
+    {
+      "id": "d_1794017080094_8614_c23",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 23,
+      "text": "例4-11 求Fibonacci序列：1,1,2,3,5,8,13,…\n1, 1, 2, 3, 5, 8, 13, ……\nx1 x2 x\nx1 x2 x\nx1 = x2 = 1;\nx = x1 + x2;\nx1 = x2;\nx2 = x;\nx1 = 1;\nx2 = 1;\nprintf ( \"%6d%6d\", x1, x2 ); /* 输出头两项 */\nfor ( i = 1; i <= 8; i++ ){ /* 循环输出后8项 */\nx = x1 + x2; /* 计算新项 */\nprintf( \"%6d\", x );\nx1 = x2; /* 更新x1和x2 */\nx2 = x;\n}\n-- 42 of 46 --\n例4-12古典算术问题－搬砖头\n某地需要搬运砖块，已知男人一人搬3块，女人\n一人搬2块，小孩两人搬一块。\n问用45人正好搬45块砖，有多少种搬法？\nfor ( men = 0; men <= 45; men++ )"
+    },
+    {
+      "id": "d_1794017080094_8614_c24",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 24,
+      "text": "for ( women = 0; women <= 45; women++ )\nfor ( child = 0; child <= 45; child++ )\nif ((men+women+child==45) && (men*3+women*2+child*0.5==45))\nprintf(\"men=%d women=%d child=%d\\n\", men, women, child);\n}\n-- 43 of 46 --\n例4-12 源程序(2)for (men = 0; men <= 15; men++)\nfor (women = 0; women <= 22; women++){\nchild = 45 – women – men;\nif (men * 3 + women * 2 + child * 0.5 == 45)\nprintf(\"men=%d women=%d child=%d\\n\", men, women, child);\n}"
+    },
+    {
+      "id": "d_1794017080094_8614_c25",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 25,
+      "text": "for (men = 0; men <= 45; men++)\nfor (women = 0; women <= 45; women++)\nfor (child = 0; child <= 45; child++)\nif ((men+women+child==45) && (men*3+women*2+child*0.5==45))\nprintf(\"men=%d women=%d child=%d\\n\", men, women, child);\n}\n比较循环次数\n-- 44 of 46 --\n练习：\n◼ 4-10\n◼ 4-11\n-- 45 of 46 --\n本章总结\n◼ 循环结构以及循环执行机制：\n while语句\n do-while语句\n for语句\n◼ break语句与continue语句\n◼ 嵌套循环的使用\n◼ 循环结构程序的综合设计\n 几个常用的算法\n• 正确理解 while语句和 do-while\n语句的执行机制；\n• 掌握 break 和 continue 语句的"
+    },
+    {
+      "id": "d_1794017080094_8614_c26",
+      "docId": "d_1794017080094_8614",
+      "docName": "chap04_循环结构.pdf",
+      "index": 26,
+      "text": "作用方式；\n• 掌握嵌套循环的执行机制与设计\n方法；\n• 能合理运用循环语句熟练编写循\n环结构类的程序；\n• 熟练掌握常用的算法\n-- 46 of 46 --"
+    },
+    {
+      "id": "d_1794017080413_5547_c0",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 0,
+      "text": "Chap 3 分支结构\n3.1 简单的猜数游戏\n3.2 四则运算\n3.3 查询自动售货机中商品的价格\n-- 1 of 48 --\n本章要点\n◼ 什么是分支结构？它的作用是什么？\n◼ switch 语句中的 break 起什么作用？\n◼ 逻辑运算和关系运算的相同之处是什么？\n它们之间又有什么不同？\n◼ 字符型数据在内存中是如何存储的？\n-- 2 of 48 --\n3.1 简单的猜数游戏\n3.1.1 程序解析\n3.1.2 二分支结构和if – else语句\n3.1.3 多分支结构和else – if 语句\n例3-1 简单的猜数游戏。输入你所猜的整数\n（假定1~100内），与计算机产生的被猜数比\n较，若相等，显示猜中；若不等，显示与被猜\n数的大小关系。\n-- 3 of 48 --\n3.1.1 程序解析# include <stdio.h>\nint main(void)\n{\nint mynumber = 38;\nint yournumber;"
+    },
+    {
+      "id": "d_1794017080413_5547_c1",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 1,
+      "text": "printf(\"Input your number: \");\nscanf(\"%d\", &yournumber);\nif(yournumber == mynumber)\nprintf(\"Ok! you are right!\\n\");\nelse\nif(yournumber > mynumber )\nprintf(\"Sorry! your number is bigger than my number!\\n\");\nelse\nprintf(\"Sorry! your number is smaller than my number!\\n\");\nreturn 0;\n} 多层缩进的书写格式\n使程序层次分明\nInput your number:48\nSorry! your number is bigger than my number!\nInput your number:38\nOk! you are right!\n-- 4 of 48 --\n3.1.2 二分支结构和 if-else 语句"
+    },
+    {
+      "id": "d_1794017080413_5547_c2",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 2,
+      "text": "if (表达式)\n语句1\nelse\n语句2\nif (表达式)\n语句1\n语句1\n表达式\n语句2\n真(非0) 假(0)\n语句1\n表达式\n真(非0) 假(0)\n一条语句\n-- 5 of 48 --\n判断数字的奇偶性\n例3-2\n输入1个整数，判断该数是奇数还是偶数。\nnumber % 2 == 0\n读入一个整数\nif (该数能被2整除)\n则该数为偶数\nelse\n该数为奇数\n-- 6 of 48 --\n源程序-判断数字的奇偶性\n#include <stdio.h>\nint main(void)\n{ int number;\nprintf(\"Enter a number: \");\nscanf(\"%d\", &number);\nif(number % 2 == 0){\nprintf(”The number is even. \\n\");\n}\nelse{\nprintf(”The number is odd. \\n\");\n}\nreturn 0;\n}\nEnter a number: 329"
+    },
+    {
+      "id": "d_1794017080413_5547_c3",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 3,
+      "text": "The number is odd.\nEnter a number: 1028\nThe number is even.\n-- 7 of 48 --\n统计学生的成绩\n例3-3 输入一个正整数n，再输入n个学生的\n成绩，计算平均分，并统计不及格成绩的\n个数。\nfor(i = 1; i <= n; i++){\n输入1个学生的成绩 grade\n累加成绩 total\n统计不及格成绩的个数count\n}\n-- 8 of 48 --\n#include <stdio.h>\nint main(void)\n{ int count, i, n;\ndouble grade, total;\nprintf(\"Enter n: \"); scanf(\"%d\", &n);\ntotal = 0; count = 0;\nfor(i = 1; i <= n; i++){\nprintf(\"Enter grade #%d: \", i);\nscanf (\"%lf\", &grade);\ntotal = total + grade;"
+    },
+    {
+      "id": "d_1794017080413_5547_c4",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 4,
+      "text": "if(grade < 60)\ncount++;\n}\nprintf(\"Grade average = %.2f\\n\", total/n);\nprintf(\"Number of failures = %d\\n\", count);\nreturn 0;\n}\n源程序-统计成绩\nEnter n: 4\nEnter grade #1: 67\nEnter grade #2: 54\nEnter grade #3: 88\nEnter grade #4: 73\nGrade average = 70.50\nNumber of failures = 1此处省略else\n-- 9 of 48 --\nif (表达式1)\n语句1;\nelse if (表达式2)\n语句2;\n……\nelse if (表达式n-1)\n语句n-1;\nelse\n语句n;\n3.1.3 多分支结构和else – if 语句\nelse-if 语句是最常用的实现多分支（多路选\n择）的方法\n-- 10 of 48 --\nif (表达式1) 语句1"
+    },
+    {
+      "id": "d_1794017080413_5547_c5",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 5,
+      "text": "else if(表达式2) 语句2\n……\nelse if(表达式n-1) 语句n-1\nelse 语句n\n假\n表达式1\n表达式2\n语句1 语句2 语句n-1 语句n\n真\n表达式n-1\n假\n真\n假\n假\n真\nn个分支需要n-1次比较\nelse – if 语句\n-- 11 of 48 --\n更改例2-4中的分段计算水费的问题\n例3-4 例2-4中提出的分段计算水费的问题。\n居民应交水费y(元)与月用水量x(吨)的函数\n关系式修正如下，并编程实现。\n\n\n\n\n\n\n\n −\n \n\n= =\n15 5 10 5 2\n15 0\n3\n4\n0 0\n,x . x .\nx ,\nx\n,x\nf(x) y\n-- 12 of 48 --\n源程序-分段计算水费\n# include <stdio.h>\nint main(void)\n{\ndouble x, y;\nprintf(\"Enter x:\");\nscanf(\"%lf\", &x);\nif (x < 0){\ny = 0;\n}"
+    },
+    {
+      "id": "d_1794017080413_5547_c6",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 6,
+      "text": "else if (x <= 15){\ny = 4 * x / 3;\n}\nelse{\ny = 2.5 * x - 10.5;\n}\nprintf(\"f(%.2f) = %.2f\\n\", x, y);\nreturn 0;\n}\nEnter x: -0.5\nf(-0.50) = 0.00\nEnter x: 9.5\nf(9.50) = 12.67\nEnter x: 21.3\nf(21.30) = 42.75\n0 0\n4\n( ) 0 15\n3\n2.5 10.5 15\nx\nx\ny f x x\nx x\n \n\n= =  \n −  \nEnter x: ?\n-- 13 of 48 --\n练习：\n◼ 3-1\n◼ 3-2\n◼ 3-3\n-- 14 of 48 --\n3.2 四则运算\n3.2.1 程序解析\n3.2.2 字符类型\n3.2.3 字符型数据的输入和输出\n3.2.4 逻辑运算\n例3-5 求解简单的四则运算表达式。\n输入一个形式如“操作数 运算符 操作数”的四\n则运算表达式，输出运算结果。"
+    },
+    {
+      "id": "d_1794017080413_5547_c7",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 7,
+      "text": "-- 15 of 48 --\n3.2.1 程序解析\n# include <stdio.h>\nint main(void) {\ndouble value1, value2;\nchar op;\nprintf(\"Type in an expression: \");\nscanf(\"%lf%c%lf\", &value1, &op, &value2);\nif(op == '+')\nprintf(\"=%.2f\\n\", value1 + value2);\nelse if(op == '-')\nprintf(\"=%.2f\\n\", value1 - value2);\nelse if(op == '*')\nprintf(\"=%.2f\\n\", value1 * value2);\nelse if(op == '/')\nprintf(\"=%.2f\\n\", value1 / value2);\nelse\nprintf(\"Unknown operator\\n\");\nreturn 0;\n}\n例3-5 输入一个形式如“操作"
+    },
+    {
+      "id": "d_1794017080413_5547_c8",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 8,
+      "text": "数 运算符 操作数”的四则运\n算表达式，输出运算结果。\nType in an expression: 3.1+4.8\n=7.90\n-- 16 of 48 --\n3.2.2 字符类型\n( op == '+' )\n( op == '-' )\n字符型数据\n 字符变量：op\n 字符常量： '+' '-' '*' '/'\nchar op;\n-- 17 of 48 --\n字符常量'a' 'z' 'A' 'Z' '0' '9' ' ' '\\n'\nASCII字符集：列出所有可用的字符\n每个字符：惟一的次序值（ ASCII 码）\n'0'-'9'\n'A'-'Z'\n'a'-'z'\n区分数字1\n和数字字符'1'\n-- 18 of 48 --\n字符变量\nchar op;\n定义字符变量op，用于存放字符型数据。\nop = '+';\n将字符型常量‘+’\n赋值给字符型变量op\n-- 19 of 48 --\n3.2.3 字符型数据的输入和输出\n◼ 调用scanf和printf输入输出字符"
+    },
+    {
+      "id": "d_1794017080413_5547_c9",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 9,
+      "text": "double value1, value2;\nchar operator;\nprintf(“Type in an expression: ”);\nscanf(“%lf%c%lf”, &value1, &op, &value2);\nprintf(“%.2f %c %.2f”, value1, op, value2);\nType in an expression: 10.0+5.61\n10.00 + 5.61\n输入时，操作数和运算符之间不能出现空格（' '）\n-- 20 of 48 --\n◼ 字符输入函数getchar()\n输入一个字符\nchar ch;\nch = getchar( );\n◼ 字符输出函数putchar()\n输出一个字符\nputchar(输出参数);\n字符常量或字符变量\nchar ch;\nch = getchar();\nputchar (ch);\nputchar (‘?');\na\na?\n只能处理单个字符的输入和\n输出，调用一次函数，只能\n输入或输出一个字符。"
+    },
+    {
+      "id": "d_1794017080413_5547_c10",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 10,
+      "text": "-- 21 of 48 --\n3.2.4 逻辑运算\nchar ch;\nprintf(\"Enter a character: \");\nch = getchar();\nif ((ch >= ’a’ && ch <= ’z’) || (ch >= ’A’ && ch <= ’Z’))\nprintf( “It is a letter.\\n”);\nelse\nprintf(“It is not a letter.\\n ”);\n0 -1 1 x\nx >= -1 并且 x <= 1\nx >= -1 && x <= 1\n-1 <= x <= 1\n-- 22 of 48 --\n3种逻辑运算符\n逻辑与 &&\n逻辑或 ||\n逻辑非 !\nX\nX && Y\nY X Y\nX || Y\nX\n! X\n-- 23 of 48 --\n逻辑与 && 逻辑或 || 逻辑非 !\n(x>1)&&(y>1) (x>1)||(y>1) (x>1)\n!(x>1) 即 x<=1\n逻辑运算符的含义\n-- 24 of 48 --"
+    },
+    {
+      "id": "d_1794017080413_5547_c11",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 11,
+      "text": "逻辑运算符的功能\n逻辑与 && 逻辑或 || 逻辑非 !\na b a&&b a||b !a\n假 假 假 假 真\n假 真 假 真 真\n真 假 假 真 假\n真 真 真 真 假\n-- 25 of 48 --\n逻辑表达式\n逻辑表达式：\n用逻辑运算符将逻辑运算对象连接起来的式子。\n(ch >= 'a') && (ch <= 'z')\n判断ch 是否为小写英文字母\n或：\nch >= 'a' && ch <= 'z'\n(ch >= 'a' && ch <= 'z') || ( ch >= 'A' && ch <= 'Z')\n判断ch 是否为英文字母，分大小写\n-- 26 of 48 --\n条件的表示\n例3-6 写出满足下列条件的C表达式。\n◼ ch 是空格或者回车。\nch == ' ' || ch == '\\n'\n◼ number是偶数。\nnumber % 2 == 0\n◼ year 是闰年，即 year 能被 4 整除但不能被\n100 整除，或 year 能被 400 整除。"
+    },
+    {
+      "id": "d_1794017080413_5547_c12",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 12,
+      "text": "(year%4 == 0 && year%100 != 0) || (year%400 == 0)\n-- 27 of 48 --\n#include <stdio.h>\nint main(void)\n{ int digit, i, letter, other;\nchar ch;\ndigit = letter = other = 0;\nprintf(“Enter 10 characters: \");\nfor(i = 1; i <= 10; i++){\nch = getchar(); /* 从键盘输入一个字符，赋值给变量 ch */\nif((ch >= 'a' && ch <= 'z' ) || ( ch >= 'A' && ch <= 'Z'))\nletter ++;\nelse if(ch >= '0' && ch <= '9') /* 如果ch是数字字符 */\ndigit ++;\nelse\nother ++;\n}"
+    },
+    {
+      "id": "d_1794017080413_5547_c13",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 13,
+      "text": "printf(“letter=%d,digit=%d,other=%d\\n”, letter, digit, other);\nreturn 0;\n}\n例3-7 输入10个字符，统计\n其中英文字母、数字字符\n和其他字符的个数。\ninput 10 characters: Reold 123?\nletter=5, digit=3, other=2\n-- 28 of 48 --\n练习：\n◼ 3-4\n◼ 3-5\n-- 29 of 48 --\n3.3 查询自动售货机中商品的价格\n3.3.1 程序解析\n3.3.2 switch语句\n3.3.3 多分支结构\n例3-8 查询自动售货机中商品的价格\n-- 30 of 48 --\n3.3.1 程序解析\n假设自动售货机出售4种商品，薯片(crisps)、爆米花\n(popcorn)、巧克力(chocolate)和可乐(cola)，售价\n分别是每份3.0、2.5、4.0和3.5元。\n在屏幕上显示以下菜单，用户可以连续查询商品的价格，"
+    },
+    {
+      "id": "d_1794017080413_5547_c14",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 14,
+      "text": "当查询次数超过5次时，自动退出查询；不到5次时，\n用户可以选择退出。\n当用户输入编号1~4，显示相应商品的价格；输入0，\n退出查询；输入其他编号，显示价格为0。\n[1] Select crisps\n[2] Select popcorn\n[3] Select chocolate\n[4] Select cola\n[0] Exit\n-- 31 of 48 --\n#include <stdio.h>\nint main(void)\n{ int choice, i; double price;\nfor( i = 1; i <= 5; i++) {\nprintf(\"[1] Select crisps \\n\");\nprintf(\"[2] Select popcorn \\n\");\nprintf(\"[3] Select chocolate \\n\");\nprintf(\"[4] Select cola \\n\");\nprintf(\"[0] exit \\n\");\nprintf(\"Enter choice: \");"
+    },
+    {
+      "id": "d_1794017080413_5547_c15",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 15,
+      "text": "scanf(\"%d\", &choice);\nif(choice == 0) break;\nswitch (choice) {\ncase 1: price=3.0; break;\ncase 2: price=2.5; break;\ncase 3: price=4.0; break;\ncase 4: price=3.5; break;\ndefault: price=0.0; break;\n}\nprintf(\"price = %0.1f\\n\", price);\n}\nprintf(\"Thanks \\n\");\n}\n[1] Select crisps\n[2] Select popcorn\n[3] Select chocolate\n[4] Select cola\n[0] Exit\nEnter choice: 1\nprice = 3.0\n[1] Select crisps\n[2] Select popcorn\n[3] Select chocolate\n[4] Select cola\n[0] Exit"
+    },
+    {
+      "id": "d_1794017080413_5547_c16",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 16,
+      "text": "Enter choice: 7\nprice = 0.0\n[1] Select crisps\n[2] Select popcorn\n[3] Select chocolate\n[4] Select cola\n[0] Exit\nEnter choice: 0\nThanks\n-- 32 of 48 --\n3.3.2 switch语句\n处理多分支选择问题，3种情况\n1、在switch语句的每个语句段中都使用\nbreak语句\nswitch(表达式){\ncase 常量表达式1：语句段1; break;\ncase 常量表达式2：语句段2; break;\n....…\ncase 常量表达式n：语句段n ; break;\ndefault ： 语句段n+1; break;\n}\n-- 33 of 48 --\nswitch(表达式){\ncase 常量表达式1：语句段1; break;\ncase 常量表达式2：语句段2; break;\n....…\ncase 常量表达式n：语句段n; break;"
+    },
+    {
+      "id": "d_1794017080413_5547_c17",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 17,
+      "text": "default ： 语句段n+1; break;\n}\n表达式的值=常量表达式 2 的值\n表\n达\n式\n语句段1\n语句段2\n语句段n\n语句段n+1\n表达式的值=常量表达式 1 的值\n表达式的值=常量表达式 n 的值\n其他\nbreak\nbreak\nbreak\nbreak\nswitch (choice) {\ncase 1: price=3.0; break;\ncase 2: price=2.5; break;\ncase 3: price=4.0; break;\ncase 4: price=3.5; break;\ndefault: price=0.0; break;\n}\n用else-if 如何实现？\n-- 34 of 48 --\n求解简单表达式\n例3-9 输入一个形式如“操作数 运算符 操作\n数”的四则运算表达式，输出运算结果。\n(要求用switch语句实现)\n例如：\n输入：3.1+4.8\n输出：7.9\n-- 35 of 48 --\n源程序\n# include <stdio.h>"
+    },
+    {
+      "id": "d_1794017080413_5547_c18",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 18,
+      "text": "int main(void)\n{ char op; double value1, value2;\nprintf(\"Type in an expression: \");\nscanf(\"%lf%c%lf\", &value1, &op, &value2);\nswitch(op){\ncase '+':\nprintf(\"=%.2f\\n\", value1+value2);\nbreak;\ncase '-':\nprintf(\"=%.2f\\n\", value1-value2);\nbreak;\ncase '*':\nprintf(\"=%.2f\\n\", value1*value2);\nbreak;\ncase '/':\nprintf(\"=%.2f\\n\", value1/value2);\nbreak;\ndefault:\nprintf(\"Unknown operator\\n\");\nbreak;\n}\nreturn 0; }\nType in an expression: 3.1+4.8\n=7.9\n如果除数为0？"
+    },
+    {
+      "id": "d_1794017080413_5547_c19",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 19,
+      "text": "-- 36 of 48 --\n2、在switch中不使用break\nswitch(表达式){\ncase 常量表达式1：语句段1;\ncase 常量表达式2：语句段2;\n....…\ncase 常量表达式n：语句段n;\ndefault ： 语句段n+1;\n}\n-- 37 of 48 --\nswitch(表达式){\ncase 常量表达式1：语句段1;\ncase 常量表达式2：语句段2;\n....…\ncase 常量表达式n：语句段n;\ndefault ： 语句段n+1;\n}\nswitch (choice) {\ncase 1: price=3.0;\ncase 2: price=2.5;\ncase 3: price=4.0;\ncase 4: price=3.5;\ndefault: price=0.0;\n}\n表达式的值=常量表达式 2 的值\n表\n达\n式\n语句段1\n语句段2\n语句段n\n语句段n+1\n表达式的值=常量表达式 1 的值\n表达式的值=常量表达式 n 的值\n其他\nprice=?"
+    },
+    {
+      "id": "d_1794017080413_5547_c20",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 20,
+      "text": "-- 38 of 48 --\n3、在switch的某些语句段中使用\nbreak\n例3-10 输入10个字符，分别统计出其中空格\n或回车、数字字符和其他字符的个数。\n比较：例3-7 输入10个字符，统计其中英文\n字母、数字字符和其他字符的个数。\n-- 39 of 48 --\nint main(void)\n{ int blank, digit, i, other; char ch;\nblank = digit = other = 0;\nprintf(\"Enter 10 characters: \");\nfor(i = 1; i <= 10; i++){\nch = getchar();\nswitch (ch){\ncase ' ' :\ncase '\\n':\nblank ++;\nbreak;\ncase '0' : case '1' : case '2' : case '3' : case '4' :"
+    },
+    {
+      "id": "d_1794017080413_5547_c21",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 21,
+      "text": "case '5' : case '6' : case '7' : case '8' : case '9' :\ndigit ++;\nbreak;\ndefault:\nother ++;\nbreak;\n}\n}\nprintf(\"blank=%d, digit=%d, other=%d\\n\", blank, digit, other);\nreturn 0;\n}\nEnter 10 characters: Reold 123?\nblank=1, digit=3, other=6\n-- 40 of 48 --\n3.3.3 多分支结构\n◼ 分支结构一般分为二分支和多分支两种结构\n◼ 二分支结构用基本的 if 语句实现\n◼ 多分支结构用实现方法：\n else – if 语句\n switch语句\n 嵌套的 if - else语句\n-- 41 of 48 --\n嵌套的 if-else 语句\nif (表达式)\n语句1\nelse\n语句2\nif 语句\nif 语句\nif(表达式1)\nif(表达式2) 语句1"
+    },
+    {
+      "id": "d_1794017080413_5547_c22",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 22,
+      "text": "else 语句2\nelse\nif(表达式3) 语句3\nelse 语句4\n-- 42 of 48 --\n嵌套的 if – else 语句 if(表达式1)\nif(表达式2) 语句1\nelse 语句2\nelse\nif(表达式3) 语句3\nelse 语句4\n表达式\n1\n表达式3\n语句4\n真 假\n表达式\n2\n语句3 语句1 语句2\n真 真 假假\n-- 43 of 48 --\n例3-11求解简单表达\n式。要求对除数为0的\n情况作特别处理。\n# include <stdio.h>\nint main(void) {\ndouble value1, value2;\nchar op;\nprintf(\"Type in an expression: \");\nscanf(\"%lf%c%lf\", &value1, &op, &value2);\nif(op == '+')\nprintf(\"=%.2f\\n\", value1 + value2);\nelse if(op == '-')"
+    },
+    {
+      "id": "d_1794017080413_5547_c23",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 23,
+      "text": "printf(\"=%.2f\\n\", value1 - value2);\nelse if(op == '*')\nprintf(\"=%.2f\\n\", value1 * value2);\nelse if(op == '/')\nif(value2 != 0) /* 嵌套的if，判断除数是否为0 */\nprintf(\"=%.2f\\n\", value1 / value2);\nelse\nprintf(\"Divisor can not be 0!\\n\");\nelse\nprintf(\"Unknown operator!\\n\");\nreturn 0;\n}\nType in an expression: 3.1+4.8\n=7.9\nType in an expression: 3.4/0\nDivisor can not be 0!\n-- 44 of 48 --\nelse 和 if 的匹配\nif(表达式1)\nif(表达式2) 语句1\nelse 语句2\nelse\nif(表达式3) 语句3\nelse 语句4"
+    },
+    {
+      "id": "d_1794017080413_5547_c24",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 24,
+      "text": "if(表达式1)\nif(表达式2) 语句1\nelse\nif(表达式3) 语句3\nelse 语句4\nelse 与最靠近它的、没有与别的 else 匹配过的 if 匹配\nif(表达式1)\nif(表达式2) 语句1\nelse\nif(表达式3) 语句3\nelse 语句4\n-- 45 of 48 --\n改变else 和 if 的配对\n例3-12 改写下列 if 语句，使 else 和第1个 if 配对。\nif (x < 2)\nif (x < 1) y = x + 1;\nelse y = x + 2;\nif (x < 2){\nif (x < 1) y = x + 1;\n}\nelse y = x + 2;\nif (x < 2)\nif (x < 1) y = x + 1;\nelse;\nelse y = x + 2;\n每条语句的执行条件?\n-- 46 of 48 --\n练习：\n◼ 3-7\n◼ 3-8\n-- 47 of 48 --\n本章总结\n◼ 分支结构：\n if-else语句\n else if"
+    },
+    {
+      "id": "d_1794017080413_5547_c25",
+      "docId": "d_1794017080413_5547",
+      "docName": "chap03_分支结构 .pdf",
+      "index": 25,
+      "text": "◼ 分支结构： switch语句\n case后为常量表达式\n break的使用\n◼ 数据类型：char型\n◼ 运算符与表达式\n 逻辑运算符、关系运算符\n 逻辑表达式\n◼ 分支结构程序的综合设计\n•正确理解if语句和switch语句\n的执行机制；\n•掌握各类关系表达式、逻辑\n表达式的运用；\n•能合理运用分支语句熟练编写\n分支结构类的程序；\n-- 48 of 48 --"
+    }
+  ]
+}
